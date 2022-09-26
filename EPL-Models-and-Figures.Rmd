@@ -1,9 +1,10 @@
+---
 title: "R Notebook"
 output: html_notebook
+---
 
 
 
-#Load packages and functions
 ```{r}
 library(broom)
 library(tidyverse)
@@ -19,10 +20,7 @@ setwd("/Users/phdwork/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/")
 `%notin%` = Negate(`%in%`)
 calc_loocv_rmse = function(model) { sqrt(mean((resid(model) / (1 - hatvalues(model))) ^
 2)) }
-```
 
-#Load Data
-```{r}
 #Data for constitutive signalling (Fig 1)
 ConstSig = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/Constituitive Signalling.csv")
 ConstSig$Protein = gsub("pFgfr", "p-Fgfr", ConstSig$Protein)
@@ -34,7 +32,7 @@ CrossTalkDataNormToES = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 
 Morph_Controls = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/Morph_Controls.csv")
 
 #Data for models (Figs 2, 3, 4, S3, S4, S5, S7, S8, S9, S10)
-AllVariables = read.csv("/Users/phdwork/Desktop/StatModelPaper_AllData.csv")
+AllVariables = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/StatModelPaper_AllData.csv")
 AllVariables$Combo = paste(ifelse(AllVariables$U == 1,  "U", ""), ifelse(AllVariables$S == 1,  "S", ""),ifelse(AllVariables$L == 1,  "L", ""),ifelse(AllVariables$R == 1,  "R", ""),ifelse(AllVariables$P == 1,  "P", ""), sep="")
 AllVariables$Combo = sapply(strsplit(AllVariables$Combo, ""), paste, collapse="+")
 AllVariables$Combo <- sub("^$", "DMSO", AllVariables$Combo)
@@ -42,7 +40,7 @@ colnames(AllVariables)[1] = "Name"
 colnames(AllVariables) = gsub("\\.", "", colnames(AllVariables))
 
 #BRANN model outputs computed by Dave Winkler  (Figs 2, 3, 4, S3, S4, S5, S7, S8, S9, S10)
-BRANN_AvP = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/BRANNs_AvP_PlotInputs.csv")
+BRANN_AvP = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/All_BRANN_Results_FEB22.csv")
 
 #Control data for emergent properties (Figs 3, S4)
 EPLControlData = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/EPL Control Data - All Assays.csv")
@@ -70,9 +68,11 @@ ColourNeutral = "#e5e6e3" #Light Grey
 ```
 
 
+
+
 ########################### FIGURES ########################### 
 
-### FIGURE 1: Constituitive signalling and cross talk
+#### FIGURE 1: Constituitive signalling and cross talk
 ```{r}
 Figure1Plots = list()
 
@@ -89,7 +89,7 @@ colnames(ConstSig_Recompile) = c("Time", "Protein", "Mean", "stdev",  "se", "dif
 
 for(Proteinz in c("p-4epb1", "p-Rps6", "p-S6k", "p-Akt", "p-Erk1/2", "p-Fgfr", "p-Stat3@S727", "p-Stat3@Y705")){
 SubsDataForANOVA = subset(ConstSig2, ConstSig2$Protein %in% Proteinz)
-SubsDataForTable = SubsDataForANOVA %>% group_by(Time, Protein) %>% summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
+SubsDataForTable = SubsDataForANOVA %>% group_by(Time, Protein) %>% dplyr::summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
 
 ANOVAResTable = as.data.frame(DunnettTest(x=SubsDataForANOVA$Value, g=SubsDataForANOVA$Time)[[1]])
 row.names(ANOVAResTable) = gsub("-0 h", "", row.names(ANOVAResTable))
@@ -107,16 +107,16 @@ Figure1Plots[["ConstSig"]] =  ggplot(ConstSig_Recompile, aes(x=Time, y=Protein, 
 
 ###### C: 2h panels
 for(p in c("pERK", "pRPS6")){
+if(p == "pERK"){p2 = "p-Erk1/2"}else{p2 = "p-Rps6"}
 Reduced_phospho_2h0h = subset(CrossTalkDataNormToES, CrossTalkDataNormToES$Protein %in% p & CrossTalkDataNormToES$Time %in% c("2", "0"))
 Reduced_phospho_2h0h$CondTime = paste(Reduced_phospho_2h0h$Inhib1, Reduced_phospho_2h0h$Time, sep="_")
 Reduced_phospho_2h0h$CondTime = factor(Reduced_phospho_2h0h$CondTime, levels = c("NA_0", "NA_2", "U_2","S_2", "L_2", "R_2", "P_2"))
 Reduced_phospho_2h0h$Value = log2(Reduced_phospho_2h0h$Value) ##### ADD LOG
 
 
-Reduced_phospho_2h0h_Summ = Reduced_phospho_2h0h %>% group_by(Protein, Inhib1, Inhib2, Inhib_Dash, Time, Combo, CondTime) %>% summarise(n = n(), Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
+Reduced_phospho_2h0h_Summ = Reduced_phospho_2h0h %>% group_by(Protein, Inhib1, Inhib2, Inhib_Dash, Time, CondTime) %>% dplyr::summarise(n = n(), Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
 
 Reduced_phospho_2h0h[c("Inhib1")][is.na(Reduced_phospho_2h0h[c("Inhib1")])] <- "-"
-
 
 
 ANOVARes = as.data.frame(DunnettTest(x=Reduced_phospho_2h0h$Value, g=Reduced_phospho_2h0h$CondTime)[1])
@@ -127,15 +127,16 @@ Reduced_phospho_2h0h_Summ$Inhib1[is.na(Reduced_phospho_2h0h_Summ$Inhib1)] <- "-"
 Reduced_phospho_2h0h_Summ$Sig <- ifelse(Reduced_phospho_2h0h_Summ$NA_0.pval <0.05,  "*", NA)
 Reduced_phospho_2h0h_Summ$Inhib1 = factor(Reduced_phospho_2h0h_Summ$Inhib1, levels = c("-", "U", "S", "L", "R", "P"))
 
-Reduced_phospho_2h0h_Summ$Inhib1Wn = paste(Reduced_phospho_2h0h_Summ$Inhib1, "\n (n = ", Reduced_phospho_2h0h_Summ$n, ")", sep="")
+Reduced_phospho_2h0h_Summ$Inhib1Wn = paste(Reduced_phospho_2h0h_Summ$Inhib1, "\n n=", Reduced_phospho_2h0h_Summ$n,  sep="")
 Reduced_phospho_2h0h_Summ_merge = merge(Reduced_phospho_2h0h_Summ, Reduced_phospho_2h0h, by = "Inhib1")
 Reduced_phospho_2h0h_Summ <- Reduced_phospho_2h0h_Summ[order(Reduced_phospho_2h0h_Summ$Inhib1),] 
 Reduced_phospho_2h0h_Summ$Inhib1Wn = factor(Reduced_phospho_2h0h_Summ$Inhib1Wn, levels = Reduced_phospho_2h0h_Summ$Inhib1Wn)
-if(p == "pERK"){Axislab = expression(Log[2]~fold~change~`in`~p-`Erk1/2`)}else{Axislab = expression(Log[2]~fold~change~`in`~p-`Rps6`)}
 
-Figure1Plots[[paste("2h", p)]] = ggplot(Reduced_phospho_2h0h_Summ, aes(x=Inhib1Wn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab(Axislab) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = Mean + sign(Mean) * (se + (se+1.8))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme(axis.title.y = element_text(size = 10), axis.text.x = element_text(size = 6.5),  strip.text.x = element_text(size = 8), plot.title = element_text(size = 15, face = "bold"))   + geom_point(data=Reduced_phospho_2h0h_Summ_merge, aes(x = Inhib1Wn, y =Value), size=0.5) + scale_y_continuous(limits = c(min(Reduced_phospho_2h0h_Summ_merge$Value)*1.2, max(Reduced_phospho_2h0h_Summ_merge$Value)*1.1))
+if(p == "pERK"){SigLab = 2.5}else{SigLab = 1}
+
+Figure1Plots[[paste("2h", p)]] = ggplot(Reduced_phospho_2h0h_Summ, aes(x=Inhib1Wn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab(expression(Log[2]~fold~change)) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle(p2) + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se+SigLab))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme( plot.title = element_text(size = 12, face = "bold", hjust = 0.5))   + geom_point(data=Reduced_phospho_2h0h_Summ_merge, aes(x = Inhib1Wn, y =Value), size=0.5) + scale_y_continuous(limits = c(min(Reduced_phospho_2h0h_Summ_merge$Value)*1.2, max(Reduced_phospho_2h0h_Summ_merge$Value)*1.1))
 }
-
+#axis.title.y = element_text(size = 10),  strip.text.x = element_text(size = 8),
 
 
 ####CROSS TALK PANELS
@@ -159,7 +160,7 @@ SubsDataForANOVA = subset(CrossTalkInput, CrossTalkInput$Combo %in% c(Dataz, "- 
 
 SubsDataForTable_All = subset(CrossTalkInput, CrossTalkInput$Combo %in% c(Dataz) & CrossTalkInput$Time %in% Timez & CrossTalkInput$Protein %in% GoI)
 
-SubsDataForTable = SubsDataForTable_All %>% group_by(Protein, Inhib1, Inhib2, Inhib_Dash, Time, Combo) %>% summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
+SubsDataForTable = SubsDataForTable_All %>% group_by(Protein, Inhib1, Inhib2, Inhib_Dash, Time, Combo) %>% dplyr::summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
 
 ANOVARes = DunnettTest(x=SubsDataForANOVA$Value, g=SubsDataForANOVA$Combo)
 ANOVARes2 = DunnettTest(x=c(SubsDataForTable_All$Value, rep(1, dim(SubsDataForTable_All)[1])), g=factor(c(SubsDataForTable_All$Combo, rep("Control", dim(SubsDataForTable_All)[1]))))
@@ -174,13 +175,14 @@ CrossTalk_Recompile = rbind(CrossTalk_Recompile, SubsDataForTable)
 
 BottomPanels = list()
 for(p in c("pERK", "pRPS6")){
+if(p == "pERK"){p2 = "p-Erk1/2"}else{p2 = "p-Rps6"}
 pERK_Controls = subset(CrossTalkDataNormToES, CrossTalkDataNormToES$Combo %in% "- -" & CrossTalkDataNormToES$Time %notin% c("0","2") & CrossTalkDataNormToES$Protein %in% p)
-pERK_Controls_Sum = pERK_Controls %>% group_by(Protein, Inhib1, Inhib2, Inhib_Dash, Time, Combo) %>% summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
+pERK_Controls_Sum = pERK_Controls %>% group_by(Protein, Inhib1, Inhib2, Inhib_Dash, Time, Combo) %>% dplyr::summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
 pERK_Controls_Sum$Pval_toPro = NA
 pERK_Controls_Sum$Pval_toES = NA
 
 
-Reduced_pERK = subset(CrossTalk_Recompile, CrossTalk_Recompile$Protein %in% "pERK" & CrossTalk_Recompile$Time %notin% c("2", "0"))
+Reduced_pERK = subset(CrossTalk_Recompile, CrossTalk_Recompile$Protein %in% p & CrossTalk_Recompile$Time %notin% c("2", "0"))
 Reduced_pERK = rbind(Reduced_pERK, pERK_Controls_Sum)
 Reduced_pERK$Time = paste(Reduced_pERK$Time, "h")
 Reduced_pERK$Time = factor(Reduced_pERK$Time, levels = c("10 h","8 h", "6 h", "4 h"))
@@ -189,49 +191,42 @@ Reduced_pERK$Combo = gsub("NA", "-", Reduced_pERK$Combo)
 Reduced_pERK$Combo = factor(Reduced_pERK$Combo, levels = c("- -", "U -", "U U", "S -", "S S", "L -", "L L", "R -", "R R", "P -", "P P", "U S", "U L", "U R", "U P", "R U", "R S", "R L", "R P"))
 levels(Reduced_pERK$Combo) <- gsub(" ", "\n", levels(Reduced_pERK$Combo))
 Reduced_pERK$Sig <- ifelse(Reduced_pERK$Pval_toPro <0.05,  "*", NA)
-BottomPanels[[paste("Cross Talk", p)]] = ggplot(Reduced_pERK, aes(x=Combo, y=Time, fill = Mean) )+ geom_tile(color = "grey") + coord_fixed()+ scale_x_discrete(labels = function(x) str_wrap(x, width = 1)) + scale_fill_gradient2(low = ColourHeatmapLow, mid = ColourHeatmapMid, high = ColourHeatmapHigh)+theme_classic() + theme(axis.ticks = element_blank(), axis.line = element_blank(), legend.title = element_blank()) + xlab("") + geom_text(aes(label=Sig))+ ylab("")
+BottomPanels[[paste("Cross Talk", p)]] = ggplot(Reduced_pERK, aes(x=Combo, y=Time, fill = Mean) )+ geom_tile(color = "grey") + coord_fixed()+ scale_x_discrete(labels = function(x) str_wrap(x, width = 1)) + scale_fill_gradient2(low = ColourHeatmapLow, mid = ColourHeatmapMid, high = ColourHeatmapHigh)+theme_classic() + theme(axis.ticks = element_blank(), axis.line = element_blank(), legend.title = element_blank(),  plot.title = element_text(size = 12, face = "bold", hjust = 0.5)) + xlab("") + geom_text(aes(label=Sig))+ ylab("") + ggtitle(p2)
 }
-
+CrossTalk_Recompile
 Figure1Plots[["CrossTalk"]] = ggarrange(BottomPanels[[paste("Cross Talk", "pERK")]], BottomPanels[[paste("Cross Talk", "pRPS6")]])
-
 
 Figure1Arrange = Figure1Plots[[1]] + Figure1Plots[[2]] + Figure1Plots[[3]] +Figure1Plots[[4]] + plot_layout(design ="##AAAB
 ##AAAC
-DDDDDD",  widths = c(1,2))
+DDDDDD",  widths = c(1,2), heights = c(1,1,2))
 
 pdf("ModellingPaper_Figure1_l2.pdf", width = 15, height = 8)
 print(Figure1Arrange)
 dev.off()
-
-
 ```
 
 
-### FIGURE 2B: Correlation Plot
+
+
+###FIGURE 2, PANEL B: Correlation Plot
 ```{r}
-SumForCorPlot = AllVariables %>% group_by(Combo) %>% summarise_all(funs(mean), na.rm = TRUE) 
-SumForCorPlot = SumForCorPlot[, c("CellNoNorm_2", "CellNoNorm_4", "CellNoNorm_6", "Prolif_2", "Prolif_4", "Prolif_6", "Apoptosis_2",  "Apoptosis_4", "Apoptosis_6", "Morphology", "Rex1", "Oct4", "Dnmt3b", "Fgf5", "Mixl1" )]
-SumForCorPlot = na.omit(SumForCorPlot)
+SumForCorPlot = AllVariables %>% select(CellNoNorm_2, CellNoNorm_4, CellNoNorm_6, Prolif_2, Prolif_4, Prolif_6, Apoptosis_2,  Apoptosis_4, Apoptosis_6, Morphology, Rex1, Oct4, Dnmt3b, Fgf5, Mixl1 )
+colnames(SumForCorPlot) = gsub("_", " - Day ", gsub("CellNoNorm", "Cell Number", gsub("Prolif", "Proliferation", colnames(SumForCorPlot))))
 
-colnames(SumForCorPlot) = gsub("_", " - Day ", gsub("CellNoNorm", "Cell Growth", gsub("Prolif", "Proliferation", colnames(SumForCorPlot))))
 
-Cor.res <- cor(SumForCorPlot)
-ColorScale = colorRampPalette(c(ColourHeatmapLow, ColourHeatmapMid, ColourHeatmapHigh))
+CORR = mycor(SumForCorPlot)
 
 
 pdf("ModellingPaper_Figure3b_Correlation.pdf", width = 8, height = 6)
-print(corrplot(Cor.res, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, tl.cex = 0.7, col=colorRampPalette(c(ColourHeatmapLow,ColourHeatmapMid, ColourHeatmapHigh))(100)))
+print(corrplot(corr=CORR$r, p.mat = CORR$p, method = "circle", type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, tl.cex = 0.7, insig="label_sig", sig.level =.05, pch.cex = 1, col=colorRampPalette(c(ColourHeatmapLow,ColourHeatmapMid, ColourHeatmapHigh))(100)))
 dev.off()
+
+
 ```
 
-#TRANSFORMATION OPTIONS FOR MODELLING DATA
-## Exp_Log - Logs data. If the data contains 0 then it will add 1 before logging.
-## Exp_Power_n - Raises data to the power of n. Use 0.5 to get square root
-## Exp_Binned_n - Categorized into bins of a fixed % of the distribution, different no. samples in each bin. n is the number of bins
-## Exp_Ntile_n - Categorized into bins of a fixed % of the sample size, same no. samples in each bin. n is the number of bins
 
 
-### FIGURE 2C: Morphology
+###FIGURE 2, PANEL C: Morphology
 ```{r}
 Data_To_Plot = c("Morphology_Log") 
 GEXPanel = list()
@@ -251,13 +246,13 @@ GoIControls_Summarised = Morph_Controls %>% group_by(Condition) %>% summarise(n 
 GoIControls_Summarised$Condition = factor(GoIControls_Summarised$Condition, levels = c("1000 U/mL LIF", "330 U/mL LIF", "330 U/mL LIF + Pro", "0 U/mL LIF"))
 
 MorphwStats = merge(GoIControls_Summarised, ANOVAResTable,  by.x = "Condition", by.y = 0, all=T)
-MorphwStats$ConditionWn = paste(MorphwStats$Condition, "\n (n = ", MorphwStats$n, ")", sep="")
+MorphwStats$ConditionWn = paste(MorphwStats$Condition, "\n n=", MorphwStats$n, sep="")
 MorphwStats$ConditionWn = gsub("mL", "\nmL", gsub("LIF", "LIF\n", MorphwStats$ConditionWn))
 Morph_Controls_merge = merge(MorphwStats, Morph_Controls, by = "Condition")
 MorphwStats <- MorphwStats[order(MorphwStats$Condition),] 
 MorphwStats$ConditionWn = factor(MorphwStats$ConditionWn, levels = MorphwStats$ConditionWn)
 
-GEXPanel[[paste(GoI, "_i_Control", sep="")]] = ggplot(MorphwStats, aes(x=ConditionWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ ggtitle(GoI)   +theme_classic() + ylab("Morphology Score") + xlab("")+ geom_point( aes(shape = Sig, y = Mean + sign(Mean) * (se + (se*1.2))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8))   + theme(plot.title = element_text(size = 15, face = "bold")) + scale_y_continuous(limits = c(0,2.2), expand = c(0,0))+ geom_point(data=Morph_Controls_merge, aes(x = ConditionWn, y =Value), size=0.5)
+GEXPanel[[paste(GoI, "_i_Control", sep="")]] = ggplot(MorphwStats, aes(x=ConditionWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ ggtitle(GoI) + theme_classic() + ylab("Morphology Score") + xlab("")+ geom_point( aes(colour = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*6))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8))   + theme(plot.title = element_text(size = 15, face = "bold")) + scale_y_continuous(limits = c(0,2.2), expand = c(0,0))+ geom_point(data=Morph_Controls_merge, aes(x = ConditionWn, y =Value), size=0.5)
 
 
 ########## DATA PREP ##########
@@ -367,7 +362,7 @@ write.csv(ModelStats_GoI, paste(GoI_X, "_3Models_Stats.csv", sep=""))
 
 
 ########## PANEL II - AVP ##########    
-PullBRANNData = subset(BRANN_AvP, BRANN_AvP$Exp %in% GoI)
+PullBRANNData = subset(BRANN_AvP, BRANN_AvP$Exp %in% GoI_X)
 PullAvP = AllAVP_GoI[, c("Response", "Predicted", "Exp", "ModelType")]
 FourModels = rbind(PullBRANNData, PullAvP)
 
@@ -387,16 +382,23 @@ GEXPanel[[paste(GoI_X, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, 
 }
 
 Figure3 = ggarrange(plotlist = GEXPanel, ncol = 4, widths = c(0.85,1.1,0.85,2))
-pdf("ModellingPaper_Figure3.pdf", width = 15, height = NRows*4)
+pdf("ModellingPaper_Figure2.pdf", width = 15, height = NRows*4)
 print(Figure3)
 dev.off()
-
 ```
 
 
-### FIGURE 3: Models for emergent properties - also used for Fig S3 and S4
+###FIGURE 3: 6 Coef Figures 
 ```{r}
-Data_To_Plot = c("CellNoNorm", "Apoptosis_Log", "Prolif_Power_6") #For Supplemental "Prolif_Ntile_8"
+#TRANSFORMATION OPTIONS
+## Exp_Log - Logs data. If the data contains 0 then it will add 1 before logging.
+## Exp_Power_n - Raises data to the power of n. Use 0.5 to get square root
+## Exp_Binned_n - Categorized into bins of a fixed % of the distribution, different no. samples in each bin. n is the number of bins
+## Exp_Ntile_n - Categorized into bins of a fixed % of the sample size, same no. samples in each bin. n is the number of bins
+FontSizes = 8
+#"CellNoNorm_Log", "CellNoNorm_Power_2", #, "Prolif", "CellNo.Norm", "Apoptosis
+
+Data_To_Plot = c("CellNoNorm", "Apoptosis_Log", "Prolif_Power_6")# "CellNoNorm", "Apoptosis_Log", "Prolif_Power_6") 
 GEXPanel = list()
 FiveWaySupplemental = list()
 NRows = length(Data_To_Plot)
@@ -414,8 +416,8 @@ errormargin = 3
 
 }
 if(GoI == "CellNoNorm"){
-PlotTitle = "Cell Growth"
-Control_Ylab = "Fold change in cell number"
+PlotTitle = "Cell Number"
+Control_Ylab = "Fold change"
 errormargin = 2.8
 }
 
@@ -423,6 +425,12 @@ errormargin = 2.8
 GoIControls = subset(EPLControlData, EPLControlData$Exp %in% GoI)
 GetMaxHeight = max(GoIControls$Value)*1.2
 GEXPanel_Controls = list()
+
+CompileData = as.data.frame(matrix(ncol =13, nrow=0))
+colnames(CompileData) = c("Condition", "Day", "n", "Mean", "stdev", "se", "diff", "lwr.ci", "upr.ci", "pval", "Sig", "ConditionWn", "MaxHeight")
+
+CompileData2 = as.data.frame(matrix(ncol =16, nrow=0))
+colnames(CompileData2) = c("Condition", "Day.x", "n", "Mean", "stdev", "se", "diff", "lwr.ci", "upr.ci", "pval", "Sig", "ConditionWn", "Exp", "Day.y", "Value", "Day")
 
 for(Dayz in c(2,4,6)){
 EPLControlData_Subs = subset(GoIControls, GoIControls$Day %in% Dayz)
@@ -434,26 +442,47 @@ row.names(ANOVAResTable) = gsub("-1000 U/mL LIF", "", row.names(ANOVAResTable))
 ANOVAResTable$Sig <- ifelse(ANOVAResTable$pval <0.05,  "*", NA)
 SummedwStats = merge(Control_GraphInputs, ANOVAResTable,  by.x = "Condition", by.y = 0, all=T)
 
-SummedwStats$ConditionWn = paste(SummedwStats$Condition, "\n (n = ", SummedwStats$n, ")", sep="")
+SummedwStats$ConditionWn = paste("D", SummedwStats$Day, "\n n=", SummedwStats$n,  sep="")
 SummedwStats$ConditionWn = gsub("mL", "\nmL", gsub("LIF", "LIF\n", SummedwStats$ConditionWn))
 EPLControlData_Subs_merge = merge(SummedwStats, EPLControlData_Subs, by = "Condition")
 
 SummedwStats$Day = paste("Day", SummedwStats$Day)
-EPLControlData_Subs_merge$Day = paste("Day", EPLControlData_Subs_merge$Day.x)
 SummedwStats$MaxHeight = (SummedwStats$Mean +  SummedwStats$se)
 SummedwStats$Condition = factor(SummedwStats$Condition, levels = c("1000 U/mL LIF", "330 U/mL LIF", "330 U/mL LIF + Pro", "0 U/mL LIF"))
 SummedwStats <- SummedwStats[order(SummedwStats$Condition),] 
-EPLControlData_Subs_merge$Condition = factor(EPLControlData_Subs_merge$Condition, levels = c("1000 U/mL LIF", "330 U/mL LIF", "330 U/mL LIF + Pro", "0 U/mL LIF"))
+CompileData = rbind(CompileData, SummedwStats)
 
+EPLControlData_Subs_merge$Day = paste("Day", EPLControlData_Subs_merge$Day.x)
+CompileData2 = rbind(CompileData2, EPLControlData_Subs_merge)
 
-GEXPanel_Controls[[paste(Dayz)]] = ggplot(SummedwStats, aes(x=Condition, y=Mean))+ geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic()  + xlab("")+ geom_point( aes(shape = Sig, y = Mean + sign(Mean) * (se + (se*errormargin))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme( plot.title = element_text(size = 15, face = "bold"), strip.background = element_blank(), strip.text.x = element_text(size = 12), axis.text.x = element_text(size = 6))  + scale_y_continuous(limits = c(0, GetMaxHeight), expand = c(0,0))  + geom_point(data=EPLControlData_Subs_merge, aes(x = Condition, y =Value), size=0.5) + scale_x_discrete(labels = SummedwStats$ConditionWn)
 }
 
-GEXPanel_Controls[[1]] = GEXPanel_Controls[[1]] + ylab(Control_Ylab) + ggtitle(PlotTitle, subtitle = "Day 2") 
-GEXPanel_Controls[[2]] = GEXPanel_Controls[[2]] + ggtitle("", subtitle = "Day 4") + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank())
-GEXPanel_Controls[[3]] = GEXPanel_Controls[[3]] + ggtitle("", subtitle = "Day 6")  + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank())
+for(x in unique(CompileData$Condition)){
+Subs = subset(CompileData, CompileData$Condition %in% x)
+Subs$ConditionWn = factor(Subs$ConditionWn)
+Subs2 = subset(CompileData2, CompileData2$Condition %in% x)
+Subs2$ConditionWn = factor(Subs2$ConditionWn)
+  
+GEXPanel_Controls[[x]] = ggplot(Subs, aes(x=ConditionWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic()  + xlab("")+ geom_point(aes(colour = ColourTwoWay,  shape = Sig, y = Mean + sign(Mean) * (se + (se*errormargin))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme(plot.title = element_text(size = 15, face = "bold"), strip.background = element_blank(), strip.text.x = element_text(size = 12))  + scale_y_continuous(limits = c(0, GetMaxHeight), expand = c(0,0))  + scale_x_discrete(labels = Subs$ConditionWn) + geom_point(data=Subs2, aes(x = ConditionWn, y =Value), size=0.5) 
+}
 
-GEXPanel[[paste(GoI_X, "_i_Control", sep="")]] =  GEXPanel_Controls[[1]] + GEXPanel_Controls[[2]] + GEXPanel_Controls[[3]]
+##
+
+
+
+
+#CompileData$Condition = factor(CompileData$Condition, levels = c("1000 U/mL LIF", "330 U/mL LIF", "330 U/mL LIF + Pro", "0 U/mL LIF"))
+
+#GEXPanel[[paste(GoI_X, "_i_Control", sep="")]] = ggplot(CompileData, aes(x=Day, y=Mean)) + facet_wrap(~Condition, nrow=1) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic()  + xlab("")+ geom_point( aes(colour = ColourTwoWay,  shape = Sig, y = Mean + sign(Mean) * (se + (se*errormargin))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme( plot.title = element_text(size = 15, face = "bold"), strip.background = element_blank(), strip.text.x = element_text(size = 12))  + scale_y_continuous(limits = c(0, GetMaxHeight), expand = c(0,0))  + scale_x_discrete(labels = CompileData$ConditionWn) #
+#}
+
+
+GEXPanel_Controls[[1]] = GEXPanel_Controls[[1]] + ylab(Control_Ylab) + ggtitle("", subtitle = "1000 U/mL \nLIF") + theme(plot.subtitle = element_text(size = 10, face="italic"))
+GEXPanel_Controls[[2]] = GEXPanel_Controls[[2]] + ggtitle("", subtitle = "330 U/mL LIF") + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank()) + theme(plot.subtitle = element_text(size = 10, face="italic"))
+GEXPanel_Controls[[3]] = GEXPanel_Controls[[3]] + ggtitle("", subtitle = "330 U/mL LIF  \n+ Pro")  + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank())+ theme(plot.subtitle = element_text(size = 10, face="italic"))
+GEXPanel_Controls[[4]] = GEXPanel_Controls[[4]] + ggtitle("", subtitle = "0 U/mL LIF" )  + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank())+ theme(plot.subtitle = element_text(size = 10, face="italic"))
+
+GEXPanel[[paste(GoI_X, "_i_Control", sep="")]] = ggarrange(plotlist =  GEXPanel_Controls, nrow=1, widths = c(1.3,1,1,1))
 
 ########## DATA PREP ##########
 SingleMetric_AllData = as.data.frame(matrix(ncol=9, nrow=0))
@@ -546,7 +575,7 @@ write.csv(AllAVP_GoI, paste(GoI_X, "_3Models_AVP.csv", sep=""))
 #COEFS
 Coefs = tidy(ModelList[[z]])
 Coefs = Coefs[-1, ] #####Remove Intercept
-Coefs$term = gsub(":", "+", gsub("Day", "Day ", Coefs$term))
+Coefs$term = gsub(":", "+", gsub("Day", "D", Coefs$term))
 Coefs$Sig <- ifelse(Coefs$p.value <0.05,  "*", NA)
 Coefs$ModelType = z
 Coefs$Exp = z
@@ -572,7 +601,7 @@ write.csv(ModelStats_GoI, paste(GoI_X, "_3Models_Stats.csv", sep=""))
 
 
 ########## PANEL II - AVP ##########    #Add BRANN
-PullBRANNData = subset(BRANN_AvP, BRANN_AvP$Exp %in% GoI)
+PullBRANNData = subset(BRANN_AvP, BRANN_AvP$Exp %in% GoI_X)
 PullAvP = AllAVP_GoI[, c("Response", "Predicted", "Exp", "ModelType")]
 FourModels = rbind(PullBRANNData, PullAvP)
 
@@ -581,22 +610,22 @@ GEXPanel[[paste(GoI_X, "_ii_Models", sep="")]] = ggplot(FourModels, aes(x=Respon
 
 ########## PANEL III - LINEAR COEFS ##########
 GoI_Linear_Coefs = subset(AllCoefs_GoI, AllCoefs_GoI$ModelType %in% "Linear")
-GoI_Linear_Coefs$term = factor(GoI_Linear_Coefs$term, levels = c("Day 2", "Day 4", "Day 6", "U", "S", "L", "R", "P"))
+GoI_Linear_Coefs$term = factor(GoI_Linear_Coefs$term, levels = c("D2", "D4", "D6", "U", "S", "L", "R", "P"))
 
-GEXPanel[[paste(GoI_X, "_iii_LinearCoefs", sep="")]] = ggplot(GoI_Linear_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourLinear, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3))+ theme(axis.text.x = element_text(size = 7))
+GEXPanel[[paste(GoI_X, "_iii_LinearCoefs", sep="")]] = ggplot(GoI_Linear_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourLinear, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3)) + theme(axis.text.x = element_text(size = FontSizes))
 
 ########## PANEL IV - TWO-WAY COEFS ##########
 GoI_TwoWay_Coefs = subset(AllCoefs_GoI, AllCoefs_GoI$ModelType %in% "Two Way")
-GoI_TwoWay_Coefs$term = factor(GoI_TwoWay_Coefs$term, levels = c("Day 2", "Day 4", "Day 6", "U", "S", "L", "R", "P", "U+S", "U+L", "U+R", "U+P", "S+L", "S+R", "S+P", "L+R", "L+P", "R+P"))
+GoI_TwoWay_Coefs$term = factor(GoI_TwoWay_Coefs$term, levels = c("D2", "D4", "D6", "U", "S", "L", "R", "P", "U+S", "U+L", "U+R", "U+P", "S+L", "S+R", "S+P", "L+R", "L+P", "R+P"))
 
-GEXPanel[[paste(GoI_X, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourTwoWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3)) + theme(axis.text.x = element_text(size = 7))
+GEXPanel[[paste(GoI_X, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourTwoWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3)) + theme(axis.text.x = element_text(size = FontSizes))
 
 
 ########## FOR SUPPLEMENTAL - FIVE-WAY COEFS ##########
 GoI_FiveWay_Coefs = subset(AllCoefs_GoI, AllCoefs_GoI$ModelType %in% "Five Way")
-GoI_FiveWay_Coefs$term = factor(GoI_FiveWay_Coefs$term, levels = c("Day 2", "Day 4", "Day 6", "U", "S", "L", "R", "P", "U+S", "U+L", "U+R", "U+P", "S+L", "S+R", "S+P", "L+R", "L+P", "R+P", "U+S+L", "U+S+R", "U+S+P", "U+L+R","U+L+P", "U+R+P", "S+L+R", "S+L+P", "S+R+P", "L+R+P", "U+S+L+R", "U+S+L+P", "U+S+R+P", "U+L+R+P", "S+L+R+P", "U+S+L+R+P"))
+GoI_FiveWay_Coefs$term = factor(GoI_FiveWay_Coefs$term, levels = c("D2", "D4", "D6", "U", "S", "L", "R", "P", "U+S", "U+L", "U+R", "U+P", "S+L", "S+R", "S+P", "L+R", "L+P", "R+P", "U+S+L", "U+S+R", "U+S+P", "U+L+R","U+L+P", "U+R+P", "S+L+R", "S+L+P", "S+R+P", "L+R+P", "U+S+L+R", "U+S+L+P", "U+S+R+P", "U+L+R+P", "S+L+R+P", "U+S+L+R+P"))
 
-FiveWaySupplemental[[paste(GoI_X, "_FiveWayCoefs", sep="")]] = ggplot(GoI_FiveWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourFiveWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab(Control_Ylab) + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme(axis.text.x = element_text(size = 7, angle = 90, vjust = 0.5, hjust=1), plot.title = element_text(size = 15, face = "bold")) + ggtitle(PlotTitle)
+FiveWaySupplemental[[paste(GoI_X, "_FiveWayCoefs", sep="")]] = ggplot(GoI_FiveWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourFiveWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab(Control_Ylab) + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), plot.title = element_text(size = 15, face = "bold")) + ggtitle(PlotTitle)
 
 }
 
@@ -611,25 +640,26 @@ pdf("ModellingPaper_FiveWaySupplementalCombined.pdf", width = 15, height = NRows
 print(FiveWaySupplementalCombined)
 dev.off()
 
-
+if(Data_To_Plot == "Prolif_Ntile_8"){
 AltModelForSup = ggarrange(plotlist = c(GEXPanel[2],GEXPanel[3],GEXPanel[4]), ncol = 3, nrow=NRows, widths = rep(c(1, 0.85, 1.7), NRows))
-pdf("ModellingPaper_Figure3_NoControls.pdf", width = 15, height = NRows*4)
+pdf("ModellingPaper_Supp4_Prolif_Ntile_8_NoControls.pdf", width = 15, height = NRows*4)
 print(AltModelForSup)
 dev.off()
+}
 ```
 
 
-### FIGURE 4: Models for qPCR - also used for Figure S5
+###FIGURE 4: 5 Coef Figures
 ```{r}
-Data_To_Plot = c("Lefty2", "Otx2") # #"Rex1", "Oct4", "Dnmt3b", "Fgf5", "Mixl1" #"Lefty2", "Otx2"  #"Lefty2", "Otx2"
+Data_To_Plot = c("Rex1", "Oct4", "Dnmt3b", "Fgf5", "Mixl1") # # #"Lefty2", "Otx2"  #"Lefty2", "Otx2"
 GEXPanel = list()
 NRows = length(Data_To_Plot)
 
 for(GoI in Data_To_Plot){
 ########## PANEL I - CONTROLS ##########
-errormargin = 0.6 # 1 for main figure
-  
-  
+if("Lefty2" %in% Data_To_Plot){errormargin = 0.8}else{errormargin =1}
+
+
 GoIControls = subset(EPLControlData_PCR, EPLControlData_PCR$Gene %in% GoI)
 GetMaxHeight = max(GoIControls$Value)*1.3
 GetMinHeight = min(GoIControls$Value)*1.4
@@ -651,17 +681,19 @@ ANOVAResTable = as.data.frame(DunnettTest(x=DataForANOVA$Value, g=DataForANOVA$D
 row.names(ANOVAResTable) = gsub("-Day 0", "", row.names(ANOVAResTable))
 ControlPCR_GraphInputsWPval = merge(ControlPCR_GraphInputs, ANOVAResTable, by.x = "Day", by.y = 0, all = T)
 ControlPCR_GraphInputsWPval$Sig <- ifelse(ControlPCR_GraphInputsWPval$pval <0.05,  "*", NA)
-ControlPCR_GraphInputsWPval$Day = factor(ControlPCR_GraphInputsWPval$Day, levels = c("Day 2", "Day 4", "Day 6"))
-ControlPCR_GraphInputsWPval$DayWn = paste(ControlPCR_GraphInputsWPval$Day, "\n (n = ", ControlPCR_GraphInputsWPval$n, ")", sep="")
+ControlPCR_GraphInputsWPval$Day = gsub("Day ", "D", ControlPCR_GraphInputsWPval$Day)
+ControlPCR_GraphInputsWPval$Day = factor(ControlPCR_GraphInputsWPval$Day, levels = c("D2", "D4", "D6"))
+ControlPCR_GraphInputsWPval$DayWn = paste(ControlPCR_GraphInputsWPval$Day, "\n n=", ControlPCR_GraphInputsWPval$n, sep="")
 
-EPLControlData_Subs$Day = factor(EPLControlData_Subs$Day, levels = c("Day 2", "Day 4", "Day 6"))
+EPLControlData_Subs$Day = gsub("Day ", "D", EPLControlData_Subs$Day)
+EPLControlData_Subs$Day = factor(EPLControlData_Subs$Day, levels = c("D2", "D4", "D6"))
 
-GEXPanel_Controls[[paste(Condit)]] = ggplot(ControlPCR_GraphInputsWPval, aes(x=Day, y=Mean))+ geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic()  + xlab("")+ geom_point( aes(shape = Sig, y = Mean  + sign(Mean) * (stdev + errormargin)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme(plot.subtitle = element_text(size = 12),  plot.title = element_text(size = 15, face = "bold"), strip.background = element_blank(), axis.text.x = element_text(size = 6)) +geom_hline(yintercept=0) + scale_y_continuous(limits = c(GetMinHeight, GetMaxHeight), expand = c(0,0))  + scale_x_discrete(labels = ControlPCR_GraphInputsWPval$DayWn) + geom_point(data=EPLControlData_Subs, aes(x = Day, y =Value), size=0.5)
+GEXPanel_Controls[[paste(Condit)]] = ggplot(ControlPCR_GraphInputsWPval, aes(x=Day, y=Mean))+ geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic()  + xlab("")+ geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean  + sign(Mean) * (stdev + errormargin)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme(plot.subtitle = element_text(size = 12),  plot.title = element_text(size = 15, face = "bold"), strip.background = element_blank()) +geom_hline(yintercept=0) + scale_y_continuous(limits = c(GetMinHeight, GetMaxHeight), expand = c(0,0))  + scale_x_discrete(labels = ControlPCR_GraphInputsWPval$DayWn) + geom_point(data=EPLControlData_Subs, aes(x = Day, y =Value), size=0.5)
 }
 
-GEXPanel_Controls[[1]] = GEXPanel_Controls[[1]] + ylab(expression(Log[2]~Fold~Change)) + ggtitle(GoI, subtitle = "330 U/mL LIF") 
-GEXPanel_Controls[[2]] = GEXPanel_Controls[[2]] + ggtitle("", subtitle = "330 U/mL LIF + Pro") + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank())
-GEXPanel_Controls[[3]] = GEXPanel_Controls[[3]] + ggtitle("", subtitle = "0 U/mL LIF")  + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank())
+GEXPanel_Controls[[1]] = GEXPanel_Controls[[1]] + ylab(expression(Log[2]~Fold~Change)) + ggtitle(GoI, subtitle = "330 U/mL LIF") + theme(plot.subtitle = element_text(face = "italic", size = 11), plot.title = element_text(face = "bold.italic"))
+GEXPanel_Controls[[2]] = GEXPanel_Controls[[2]] + ggtitle("", subtitle = "330 U/mL LIF \n+ Pro") + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank()) + theme(plot.subtitle = element_text(face = "italic", size = 11))
+GEXPanel_Controls[[3]] = GEXPanel_Controls[[3]] + ggtitle("", subtitle = "0 U/mL LIF")  + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank())+ theme(plot.subtitle = element_text(face = "italic", size = 11))
 
 GEXPanel[[paste(GoI, "_i_Controls", sep="")]] =  GEXPanel_Controls[[1]] + GEXPanel_Controls[[2]] + GEXPanel_Controls[[3]]
 #######
@@ -763,15 +795,20 @@ GoI_TwoWay_Coefs$term = factor(GoI_TwoWay_Coefs$term, levels = c("U", "S", "L", 
 GEXPanel[[paste(GoI, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourTwoWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))
 }
 
+
+if("Lefty2" %in% Data_To_Plot){Name = "Supp5"}else{Name = "Figure4"}
 Figure4 = ggarrange(plotlist = GEXPanel, ncol = 4, nrow=NRows, widths = rep(c(1.6, 1, 0.85, 1.7), NRows))
-pdf("ModellingPaper_Figure4.pdf", width = 15, height = NRows*4)
+pdf(paste("ModellingPaper_", Name, ".pdf", sep= ""), width = 15, height = NRows*4)
 print(Figure4)
 dev.off()
+
+
 
 ```
 
 
-### FIGURE S6: Functional Assay
+
+### SUPPLEMENTAL 6: Functional Assay
 ```{r}
 FA_list = list()
 Condit = c("1000 U/mL LIF", "330 U/mL LIF + Pro", "U", "S", "L", "R", "P", "U+S", "U+L", "U+R", "U+P", "S+L", "S+R", "S+P", "L+P", "R+P", "U+S+L", "U+S+R", "U+R+P", "U+S+P","U+L+P", "S+L+P", "S+R+P", "U+S+R+P", "U+S+L+P")
@@ -801,25 +838,47 @@ CompileForPlotWStats = merge(CompileForPlot, ANOVARes, by.x = "Day", by.y = 0)
 CompileForPlotWStats$Sig <- ifelse(CompileForPlotWStats$pval <0.05,  "*", NA)
 
 
-CompileForPlotWStats$DayWn = paste(CompileForPlotWStats$Day, "\n (n = ", CompileForPlotWStats$n, ")", sep="")
+CompileForPlotWStats$DayWn = paste(CompileForPlotWStats$Day, "\n n=", CompileForPlotWStats$n, sep="")
 FA_ForSTATSmerge = merge(CompileForPlotWStats, FA_ForSTATS, by = "Day")
 
 CompileForPlotWStats <- CompileForPlotWStats[order(CompileForPlotWStats$Day),] 
 CompileForPlotWStats$DayWn = factor(CompileForPlotWStats$DayWn, levels = CompileForPlotWStats$DayWn)
 
-FA_list[[x]] = ggplot(CompileForPlotWStats, aes(x=DayWn, y=Mean))  + geom_col(fill = ColourTwoWay, color = "#000000")  +theme_classic() + geom_hline(yintercept=0) + ylab("") + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(axis.text.x = element_text(size = 6), legend.position="none", plot.title = element_text(size = 8, face = "bold")) + scale_y_continuous(limits = c(MinVal, MaxVal)) + ggtitle(x) + geom_point( aes(shape = Sig, y = Mean + sign(Mean) * (se + (se*3.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8)) + geom_point(data=FA_ForSTATSmerge, aes(x = DayWn, y =Value), size=0.5)
+if(x == "330 U/mL LIF + Pro"){Title = "330 U/mL LIF \n + Pro"}else{Title = x}
+
+FA_list[[x]] = ggplot(CompileForPlotWStats, aes(x=DayWn, y=Mean))  + geom_col(fill = ColourTwoWay, color = "#000000")  +theme_classic() + geom_hline(yintercept=0) + ylab("") + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(axis.text.x = element_text(size = 6), legend.position="none", plot.title = element_text(size = 10, face = "bold")) + scale_y_continuous(limits = c(MinVal, MaxVal)) + ggtitle(Title) + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*3.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8)) + geom_point(data=FA_ForSTATSmerge, aes(x = DayWn, y =Value), size=0.5)
 
 }      
 
-FunctAssayFig = ggarrange(plotlist = FA_list, ncol =5, nrow=NRows)
+FunctAssayFig = ggarrange(plotlist = FA_list, ncol =5, nrow=5)
 
-pdf("Supplemental_FunctionalAssay.pdf", width = 8, height =  9)
+pdf("Supplemental6_FunctionalAssay.pdf", width = 8, height =  9)
 print(FunctAssayFig)
 dev.off()
 ```
 
 
-### FIGURE S7-10: Raw data for each inhibitor combination
+
+
+##Run Shapiro-Wilks test for BRANN
+```{r}
+SW_Res = as.data.frame(matrix(ncol=3, nrow=0))
+colnames(SW_Res) = c("Exp", "SWpval", "Rsq")
+
+for(x in unique(BRANN_AvP$Exp)){
+Subs = subset(BRANN_AvP, BRANN_AvP$Exp == x)  
+BRANN_SW = as.data.frame(x)
+colnames(BRANN_SW) = "Exp"
+BRANN_SW$SWpval =  shapiro.test(Subs$Predicted)[[2]]
+GetLM = lm(Response~Predicted, data = Subs)
+BRANN_SW$Rsq = glance(GetLM)[[1]]
+SW_Res = rbind(SW_Res, BRANN_SW)
+}
+```
+
+
+
+##All inhib - bar plots for supplementals
 ```{r}
 SuppControlPCRFigs = list()
 Data_To_Plot = c("Rex1", "Oct4", "Dnmt3b", "Fgf5", "Mixl1", "Lefty2", "Otx2", "Morphology")
@@ -849,7 +908,7 @@ ExclLR <- ExclLR[order(ExclLR$Combo),]
 ExclLR$ComboWn = factor(ExclLR$ComboWn, levels = ExclLR$ComboWn)
 
 
-SuppControlPCRFigs[[e]] = ggplot(ExclLR, aes(x=ComboWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000")  +theme_classic() + geom_hline(yintercept=0) + ylab(Ytitle) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(legend.position="none", plot.title = element_text(size = 15, face = TitleStyle), axis.text.x = element_text(size = 7, angle = 90, vjust = 0.5, hjust=1)) + ggtitle(e) + geom_point(data=SelectData_ExclLRmerge, aes(x = ComboWn, y =Value), size=0.5)
+SuppControlPCRFigs[[e]] = ggplot(ExclLR, aes(x=ComboWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000")  +theme_classic() + geom_hline(yintercept=0) + ylab(Ytitle) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(legend.position="none", plot.title = element_text(size = 15, face = TitleStyle), axis.text.x = element_text( angle = 90, vjust = 0.5, hjust=1)) + ggtitle(e) + geom_point(data=SelectData_ExclLRmerge, aes(x = ComboWn, y =Value), size=0.5)
 }
 
 SuppPCR = ggarrange(plotlist = SuppControlPCRFigs, ncol = 1, nrow=NRows)
@@ -881,8 +940,8 @@ PlotTitle = "Proliferation"
 Control_Ylab = "% BrdU +"
 }
 if(grepl("CellNoNorm", e, fixed = TRUE)){
-PlotTitle = "Cell Growth"
-Control_Ylab = "Fold change in cell number"
+PlotTitle = "Cell Number"
+Control_Ylab = "Fold change"
 }
 if(grepl("Morphology", e, fixed = TRUE)){
 PlotTitle = "Morphology"
@@ -913,6 +972,7 @@ ExclLR = subset(SelectData_Condensed,  SelectData_Condensed$Combo %notin% c("L+R
 ExclLR$LRColour = "Neutral"
 OnlyLR = subset(SelectData_Condensed,  SelectData_Condensed$Combo %in% c("L+R", "U+L+R", "S+L+R", "L+R+P", "U+S+L+R",  "U+L+R+P", "S+L+R+P",  "U+S+L+R+P"))  
 OnlyLR$LRColour = "Blue"
+
 SelectData_Condensed2 =rbind(ExclLR, OnlyLR)
 SelectData_Condensed2$ComboWn = paste(SelectData_Condensed2$Combo, " (n = ", SelectData_Condensed2$n, ")", sep="")
 SelectData_merge = merge(SelectData_Condensed2, SelectData, by = "Combo")
@@ -920,24 +980,60 @@ SelectData_Condensed2 <- SelectData_Condensed2[order(SelectData_Condensed2$Combo
 SelectData_Condensed2$ComboWn = factor(SelectData_Condensed2$ComboWn, levels = SelectData_Condensed2$ComboWn)
 
 
-SuppControlEmergFigs[[e]] = ggplot(SelectData_Condensed2, aes(x=ComboWn, y=Mean,fill = LRColour)) + geom_bar(stat = "identity", color = "#000000") + scale_fill_manual(values = c("Neutral" =  ColourNeutral, "Blue" = ColourTwoWay))  +theme_classic() + geom_hline(yintercept=0) + ylab(Control_Ylab) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(legend.position="none", plot.title = element_text(size = 15, face = "bold"), axis.text.x = element_text(size = 7, angle = 90, vjust = 0.5, hjust=1)) + ggtitle(paste(PlotTitle, DayFactor, sep = "")) + geom_point(data=SelectData_merge, aes(x = ComboWn, y =Value), color = "#000000", fill = "#000000", size = 0.5) 
+SuppControlEmergFigs[[e]] = ggplot(SelectData_Condensed2, aes(x=ComboWn, y=Mean,fill = LRColour)) + geom_bar(stat = "identity", color = "#000000") + scale_fill_manual(values = c("Neutral" =  ColourNeutral, "Blue" = ColourTwoWay))  +theme_classic() + geom_hline(yintercept=0) + ylab(Control_Ylab) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(legend.position="none", plot.title = element_text(size = 15, face = "bold"), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + ggtitle(paste(PlotTitle, DayFactor, sep = "")) + geom_point(data=SelectData_merge, aes(x = ComboWn, y =Value), color = "#000000", fill = "#000000", size = 0.5)
+
+}else if(DayFactor == " - Day 4"){
+ExclLR = subset(SelectData_Condensed,  SelectData_Condensed$Combo %notin% c("L+R", "U+L+R", "S+L+R", "L+R+P", "U+S+L+R",  "U+L+R+P", "S+L+R+P",  "U+S+L+R+P"))  
+ExclLR$LRColour = "Neutral"
+OnlyLR = subset(SelectData_Condensed,  SelectData_Condensed$Combo %in% c("L+R", "U+L+R", "S+L+R", "L+R+P", "U+S+L+R",  "U+L+R+P", "S+L+R+P",  "U+S+L+R+P"))  
+OnlyLR$n = 0
+OnlyLR$Mean = 0
+OnlyLR$stdev = 0
+OnlyLR$se = 0
+
+OnlyLR$LRColour = "Blue"
+SelectData_Condensed2 =rbind(ExclLR, OnlyLR)
+SelectData_Condensed2$ComboWn = paste(SelectData_Condensed2$Combo, " (n = ", SelectData_Condensed2$n, ")", sep="")
+SelectData_merge = merge(SelectData_Condensed2, SelectData, by = "Combo")
+SelectData_merge$Value = ifelse(SelectData_merge$n == 0, 0, SelectData_merge$Value)
+
+SelectData_Condensed2 <- SelectData_Condensed2[order(SelectData_Condensed2$Combo),] 
+SelectData_Condensed2$ComboWn = factor(SelectData_Condensed2$ComboWn, levels = SelectData_Condensed2$ComboWn)
 
 
+SuppControlEmergFigs[[e]] = ggplot(SelectData_Condensed2, aes(x=ComboWn, y=Mean,fill = LRColour)) + geom_bar(stat = "identity", color = "#000000") + scale_fill_manual(values = c("Neutral" =  ColourNeutral, "Blue" = ColourTwoWay))  +theme_classic() + geom_hline(yintercept=0) + ylab(Control_Ylab) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(legend.position="none", plot.title = element_text(size = 15, face = "bold"), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + ggtitle(paste(PlotTitle, DayFactor, sep = "")) + geom_point(data=SelectData_merge, aes(x = ComboWn, y =Value), color = "#000000", fill = "#000000", size = 0.5)
 
+}else if(DayFactor == " - Day 6"){
+ExclLR = subset(SelectData_Condensed,  SelectData_Condensed$Combo %notin% c("L+R", "U+L+R", "S+L+R", "L+R+P", "U+S+L+R",  "U+L+R+P", "S+L+R+P",  "U+S+L+R+P"))  
+ExclLR$LRColour = "Neutral"
+OnlyLR = subset(SelectData_Condensed,  SelectData_Condensed$Combo %in% c("L+R", "U+L+R", "S+L+R", "L+R+P", "U+S+L+R",  "U+L+R+P", "S+L+R+P",  "U+S+L+R+P"))  
+OnlyLR$n = 0
+OnlyLR$Mean = 0
+OnlyLR$stdev = 0
+OnlyLR$se = 0
+OnlyLR$LRColour = "Blue"
+SelectData_Condensed2 =rbind(ExclLR, OnlyLR)
+SelectData_Condensed2$ComboWn = paste(SelectData_Condensed2$Combo, " (n = ", SelectData_Condensed2$n, ")", sep="")
+SelectData_merge = merge(SelectData_Condensed2, SelectData, by = "Combo")
+SelectData_merge$Value = ifelse(SelectData_merge$n == 0, 0, SelectData_merge$Value)
+for(a in c("L+R", "U+L+R", "S+L+R", "L+R+P", "U+S+L+R",  "U+L+R+P", "S+L+R+P",  "U+S+L+R+P")){
+if(!a %in% SelectData_merge$Combo){
+ExtraData = as.data.frame(t(c(a, 0, 0, 0, 0, "Blue", paste(a, "(n=0)"), 0)))
+colnames(ExtraData) = colnames(SelectData_merge)
+ExtraData$Value = is.numeric(ExtraData$Value)
+SelectData_merge = rbind(SelectData_merge, ExtraData)
 
-}else{
-  
-SelectData_ExclLR = subset(SelectData,  SelectData$Combo %notin% c("L+R", "U+L+R", "S+L+R", "L+R+P", "U+S+L+R",  "U+L+R+P", "S+L+R+P",  "U+S+L+R+P"))
+ExtraData2 = as.data.frame(t(c(a, 0, 0, 0, 0, "Blue", paste(a, "(n=0)"))))
+colnames(ExtraData2) = colnames(SelectData_Condensed2)
+ExtraData2$Mean = is.numeric(ExtraData2$Mean)
+ExtraData2$se = is.numeric(ExtraData2$se)
+SelectData_Condensed2 = rbind(SelectData_Condensed2, ExtraData2)
+}}
+SelectData_Condensed2 <- SelectData_Condensed2[order(SelectData_Condensed2$Combo),] 
+SelectData_Condensed2$ComboWn = factor(SelectData_Condensed2$ComboWn, levels = SelectData_Condensed2$ComboWn)
 
+SuppControlEmergFigs[[e]] = ggplot(SelectData_Condensed2, aes(x=ComboWn, y=Mean,fill = LRColour)) + geom_bar(stat = "identity", color = "#000000") + scale_fill_manual(values = c("Neutral" =  ColourNeutral, "Blue" = ColourTwoWay))  +theme_classic() + geom_hline(yintercept=0) + ylab(Control_Ylab) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(legend.position="none", plot.title = element_text(size = 15, face = "bold"), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + ggtitle(paste(PlotTitle, DayFactor, sep = "")) + geom_point(data=SelectData_merge, aes(x = ComboWn, y =Value), color = "#000000", fill = "#000000", size = 0.5)
 
-
-ExclLR$ComboWn = paste(ExclLR$Combo, " (n = ", ExclLR$n, ")", sep="")
-SelectData_ExclLR_merge = merge(ExclLR, SelectData_ExclLR, by = "Combo")
-
-ExclLR <- ExclLR[order(ExclLR$Combo),] 
-ExclLR$ComboWn = factor(ExclLR$ComboWn, levels = ExclLR$ComboWn)
-
-SuppControlEmergFigs[[e]] = ggplot(ExclLR, aes(x=ComboWn, y=Mean)) + geom_bar(stat = "identity", fill = ColourNeutral, color = "#000000")  +theme_classic() + geom_hline(yintercept=0) + ylab(Control_Ylab) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(legend.position="none", plot.title = element_text(size = 15, face = "bold"), axis.text.x = element_text(size = 7, angle = 90, vjust = 0.5, hjust=1)) + ggtitle(paste(PlotTitle, DayFactor, sep = "")) + geom_point(data=SelectData_ExclLR_merge, aes(x = ComboWn, y =Value), size = 0.5)
 }
 }
 
@@ -945,612 +1041,246 @@ SuppEmerg = ggarrange(plotlist = SuppControlEmergFigs, ncol = 1, nrow=3)
 pdf(paste("ModellingPaper_SuppEmerg_ExclLR.pdf", sep=""), width = 12, height = 3*2.8)
 print(SuppEmerg)
 dev.off()
-
-```
-
-
-##Run Statistics for BRANN
-```{r}
-BRANN_Stats = as.data.frame(matrix(ncol=5, nrow=0))
-colnames(BRANN_Stats) = c("Exp", "Sigma", "Rsq", "AdjRsq", "SWpval")
-
-for(x in unique(BRANN_AvP$Exp)){
-Subs = subset(BRANN_AvP, BRANN_AvP$Exp == x)  
-if(x %in% c("Fgf5", "Oct4", "Rex1", "Dnmt3b", "Lefty2", "Otx2",  "Mixl1")){ncoef = 6}else{ncoef = 9} #Coefs plus intercept
-nsample = dim(Subs)[1]
-df = nsample - ncoef
-MeanAverage = mean(Subs$Response)
-Subs$SST = (Subs$Response - MeanAverage)^2
-Tot_SST = sum(Subs$SST)
-Subs$SSE = (Subs$Response - Subs$Predicted)^2
-Tot_SSE = sum(Subs$SSE)
-Subs$SSR = (Subs$Predicted - MeanAverage)^2
-Tot_SSR = sum(Subs$SSR)
-
-Subs_Stats = as.data.frame(t(c(x, #Exp
-                             sqrt(Tot_SSE/df), #Sigma
-                             (Tot_SSR/Tot_SST), #R-sq
-                             (1-((1-(Tot_SSR/Tot_SST))*(nsample-1)/df)), #AdjRsq
-                             shapiro.test(Subs$Predicted)[[2]])))
-colnames(Subs_Stats) = c("Exp", "Sigma", "Rsq", "AdjRsq", "SWpval")
-Subs_Stats$Exp = x
-BRANN_Stats = rbind(BRANN_Stats, Subs_Stats)
-}
 ```
 
 
 
-
-
-#################### EXPLORATORY  ANALYSIS #################### 
-#Used to determine what data inputs to use, transformations etc. Not used in final paper
-
-##### EXPLORATORY  ANALYSIS: EMERG PROPERTIES
+### ITERATIONS FOR SUPP TABLE
 ```{r}
-CompiledData = as.data.frame(matrix(ncol=20, nrow=0))
-colnames(CompiledData) = c("r.squared", "adj.r.squared", "sigma", "statistic", "p.value", "df", "logLik", "AIC", "BIC", "deviance", "df.residual", "nobs", "NCV", "SW_Input", "SW_Residuals", "LOOCV",  "BPTest", "Dataset", "ModelType", "Variable")
+#################### 5 COEFS #################### 
 
-AvPListALL = list()
-StatsListALL = list()
-CoefsListALL = list()
+Data_To_Plot = c("Morphology_Log", "Morphology", "Rex1", "Oct4", "Dnmt3b", "Fgf5", "Mixl1", "Lefty2", "Otx2") 
+GEXPanel = list()
+NRows = length(Data_To_Plot)
 
+#GoI_X= c("Morphology_Log") 
 
-##Reorg Multi Day Experiments
-for(y in c("Apoptosis", "Prolif", "CellNo.Raw", "CellNo.Norm")){ #, 
-DatasetsList = list()
-ModelList = list()
-PlotListz = list()
-OutputListz = list()
-AvPList = list()
+for(GoI_X in Data_To_Plot){
+GoI = gsub("_.*", "", GoI_X)
 
-SingleMetric_AllData = as.data.frame(matrix(ncol=9, nrow=0))
-colnames(SingleMetric_AllData) = c("Name", "Combo", "U", "S", "L", "R", "P", "Day", y)
-
-for(x in c(2,4,6)){
-SingleMetric_SingleDay = AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", paste(y, x, sep="_"))]
-SingleMetric_SingleDay$Day = x
-colnames(SingleMetric_SingleDay) = gsub("_.*", "", colnames(SingleMetric_SingleDay))
-SingleMetric_AllData = rbind(SingleMetric_AllData, SingleMetric_SingleDay)
-}
-
-##DATA PREP - FULL DATASET
+########## DATA PREP ##########
+SingleMetric_AllData =  AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", GoI)]
+SingleMetric_AllData$Response = SingleMetric_AllData[[GoI]]
+SingleMetric_AllData[[GoI]] = NULL
 SingleMetric_AllData = na.omit(SingleMetric_AllData)
 
-SingleMetric_AllData$Name = gsub(" ", "", SingleMetric_AllData$Name)
-SingleMetric_AllData$Response = SingleMetric_AllData[[y]]
-SingleMetric_AllData[[y]] = NULL
-DatasetsList[["Full Dataset - Day Numeric"]] = SingleMetric_AllData
-
-ToExport = SingleMetric_AllData
-ToExport$Combo = NULL
-write.table(ToExport, paste("FullDataset_DayNumeric", y, "_", Sys.Date(), ".txt", sep=""), sep="\t",row.names=FALSE, quote=F,  eol = "\n")
-
-SingleMetric_AllData_BinaryDay = SingleMetric_AllData
-SingleMetric_AllData_BinaryDay$Day2 =  ifelse(SingleMetric_AllData_BinaryDay$Day == 2,  1, 0)
-SingleMetric_AllData_BinaryDay$Day4 =  ifelse(SingleMetric_AllData_BinaryDay$Day == 4,  1, 0)
-SingleMetric_AllData_BinaryDay$Day6 =  ifelse(SingleMetric_AllData_BinaryDay$Day == 6,  1, 0)
-
-SingleMetric_AllData_BinaryDay$Day = NULL
-SingleMetric_AllData_BinaryDay = SingleMetric_AllData_BinaryDay[,c(1,2,3,4,5,6,7,9,10,11,8)]
-DatasetsList[["Full Dataset - Day Binary"]] = SingleMetric_AllData_BinaryDay
-ToExportBinary = SingleMetric_AllData_BinaryDay
-ToExportBinary$Combo = NULL
-write.table(ToExportBinary, paste("FullDataset_DayBinary", y, "_", Sys.Date(), ".txt", sep=""), sep="\t",row.names=FALSE, quote=F,  eol = "\n")
-
-
-##DATA PREP - AVERAGED DATASET
 SingleMetric_AllData$Name = NULL
 SingleMetric_AllData$Combo = paste("Day", SingleMetric_AllData$Day, "_", SingleMetric_AllData$Combo, sep="")
-
 Reduced = SingleMetric_AllData %>% group_by(Combo) %>% summarise_all(funs(mean))
-DatasetsList[["Reduced Dataset - All Conditions - Day Numeric"]] = Reduced
-write.table(Reduced, paste("ReducedDataset_AllConditions_DayNumeric_", y, "_", Sys.Date(), ".txt", sep=""), sep="\t",row.names=FALSE, quote=F,  eol = "\n")
 
-Reduced_BinaryDay = Reduced
-Reduced_BinaryDay$Day2 =  ifelse(Reduced_BinaryDay$Day == 2,  1, 0)
-Reduced_BinaryDay$Day4 =  ifelse(Reduced_BinaryDay$Day == 4,  1, 0)
-Reduced_BinaryDay$Day6 =  ifelse(Reduced_BinaryDay$Day == 6,  1, 0)
-Reduced_BinaryDay$Day = NULL
-Reduced_BinaryDay = Reduced_BinaryDay[,c(1,2,3,4,5,6,8,9,10,7)]
-DatasetsList[["Reduced Dataset - All Conditions - Day Binary"]] = Reduced_BinaryDay
-write.table(Reduced_BinaryDay, paste("ReducedDataset_AllConditions_DayBinary_", y, "_", Sys.Date(), ".txt", sep=""), sep="\t",row.names=FALSE, quote=F,  eol = "\n")
-
-##DATA PREP - AVERAGED DATASET N=3
 GetReps = as.data.frame(table(SingleMetric_AllData$Combo))
 ThreePlusReps = subset(GetReps, GetReps$Freq >=3)
 Reduced_ThreePlus = subset(Reduced, Reduced$Combo %in% ThreePlusReps$Var1)
-DatasetsList[["Reduced Dataset - N>=3 Only - Day Numeric"]] = Reduced_ThreePlus
-write.table(Reduced_ThreePlus, paste("ReducedDataset_N3Only_DayNumeric_", y, "_", Sys.Date(), ".txt", sep=""), sep="\t",row.names=FALSE, quote=F,  eol = "\n")
-
-Reduced_ThreePlusBinary = subset(Reduced_BinaryDay, Reduced_BinaryDay$Combo %in% ThreePlusReps$Var1)
-DatasetsList[["Reduced Dataset - N>=3 Only - Day Binary"]] = Reduced_ThreePlusBinary
-write.table(Reduced_ThreePlusBinary, paste("ReducedDataset_N3Only_DayBinary_", y,"_", Sys.Date(), ".txt", sep=""), sep="\t",row.names=FALSE, quote=F,  eol = "\n")
+##########
 
 
-
-for(p in c("Full Dataset - Day Numeric", "Full Dataset - Day Binary", "Reduced Dataset - All Conditions - Day Numeric", "Reduced Dataset - All Conditions - Day Binary", "Reduced Dataset - N>=3 Only - Day Numeric", "Reduced Dataset - N>=3 Only - Day Binary")){
-p2 = gsub(" ", "", gsub("-", "_", gsub(">=", "", p)))
-
-if(dim(DatasetsList[[p]])[2] >= 10 ){
-ModelList[["Linear Model"]] = lm(Response~Day2+Day4+Day6+U+S+L+R+P, DatasetsList[[p]])
-ModelList[["Two Way Interaction Model"]] = lm(Response~Day2+Day4+Day6+(U+S+L+R+P)^2, DatasetsList[[p]])
-ModelList[["Five Way Interaction Model"]] = lm(Response~Day2+Day4+Day6+(U+S+L+R+P)^5, DatasetsList[[p]])    
+########## APPLY TRANSFORMATIONS IF REQUIRED ##########
+if(GoI_X %notin% GoI){
+#If log then  
+if(grepl("Log", GoI_X, fixed = TRUE) == T){
+if(min(Reduced_ThreePlus$Response) > 0){
+Reduced_ThreePlus$Response = log(Reduced_ThreePlus$Response)  
 }else{
-ModelList[["Linear Model"]] = lm(Response~Day+U+S+L+R+P, DatasetsList[[p]])
-ModelList[["Two Way Interaction Model"]] = lm(Response~Day+(U+S+L+R+P)^2, DatasetsList[[p]])
-ModelList[["Five Way Interaction Model"]] = lm(Response~Day+(U+S+L+R+P)^5, DatasetsList[[p]])
-}
-
-for(z in c("Linear Model", "Two Way Interaction Model", "Five Way Interaction Model")){
-Stats = glance(ModelList[[z]])
-Stats = glance(ModelList[[z]])
-Stats$NCV = ncvTest(ModelList[[z]])[[5]]
-Stats$SW_Input = shapiro.test(DatasetsList[[p]]$Response)[[2]]
-Stats$SW_Residuals = shapiro.test(residuals(ModelList[[z]]))[[2]]
-Stats$LOOCV = calc_loocv_rmse(ModelList[[z]])
-Stats$BPTest =  bptest(ModelList[[z]])[[4]]
-
-Coefs = tidy(ModelList[[z]])
-CoefsSig = subset(Coefs, Coefs$p.value < 0.05)
-
-GetPredicted = as.data.frame(ModelList[[z]]$fitted.values)
-ActvPred = as.data.frame(cbind(DatasetsList[[p]], GetPredicted$`ModelList[[z]]$fitted.values`))
-colnames(ActvPred) = c(colnames(DatasetsList[[p]]), "Predicted")
-OutputListz[[paste(p,z, sep = " - ")]] = ActvPred
-
-
-z2 = gsub(" ", "", z)
-sink(paste(y, "_", p2, "_", z2, '.csv', sep=""))
-cat('#### STATS #### \n')
-write.csv(Stats, row.names = F)
-cat('\n ____________________________ \n \n #### SIG COEFS #### \n')
-write.csv(CoefsSig, row.names = F)
-cat('\n #### ALL COEFS #### \n')
-write.csv(Coefs, row.names = F)
-cat('\n ____________________________ \n \n #### ACTUAL v PREDICT #### \n')
-write.csv(ActvPred, row.names = F)
-sink() 
-
-Coefs = Coefs[-1, ]
-Coefs$term = gsub(":", "+", Coefs$term)
-Coefs$term = factor(Coefs$term, levels=rev(Coefs$term))
-Coefs$Sig <- ifelse(Coefs$p.value <0.05,  "*", NA)
-
-ActvPred$ModelType = z2
-ActvPred$Dataset = p2
-Coefs$ModelType = z2
-Coefs$Dataset = p2
-
-AvPListALL[[paste(y, p2, z2, sep="_")]] = ActvPred
-StatsListALL[[paste(y, p2, z2, sep="_")]] = Stats
-CoefsListALL[[paste(y, p2, z2, sep="_")]] = Coefs
-
-#assign(paste(y, "_Stats_", p2, "_", z2, sep=""), Stats)
-#assign(paste(y, "_Coefs_", p2, "_", z2, sep=""), Coefs)
-#assign(paste(y, "_ActvPred_", p2, "_", z2, sep=""), ActvPred)
-
-Stats$Dataset = p
-Stats$ModelType = z
-Stats$Variable = y
-CompiledData = rbind(CompiledData, Stats)
-
-# paste("  Adj-Rsq: ", round(Stats$adj.r.squared, digits=2), " \n  AIC: ", round(Stats$AIC, digits=2), " \n  BIC: ", round(Stats$BIC, digits=2),  " \n  LOOCV: ", round(Stats$LOOCV, digits=2),  sep="")
-
-PlotListz[[paste("Plot1", z, p)]] = ggplot(ActvPred, aes(x=Response, y=Predicted, label = paste("  Adj-Rsq: ", round(Stats$adj.r.squared, digits=2), " \n  AIC: ", round(Stats$AIC, digits=2), " \n  BIC: ", round(Stats$BIC, digits=2),  " \n  LOOCV: ", round(Stats$LOOCV, digits=2),  sep=""))) + geom_point() + xlab("Actual") + theme_classic() + geom_smooth(method="lm", color="black") + ggtitle(paste(z, " [", p, "]", sep="")) + geom_text(label = paste("  Adj-Rsq: ", round(Stats$adj.r.squared, digits=2), " \n  AIC: ", round(Stats$AIC, digits=2), " \n  BIC: ", round(Stats$BIC, digits=2),  " \n  LOOCV: ", round(Stats$LOOCV, digits=2),  sep=""), x = -Inf, y = Inf, hjust = 0, vjust = 1)
-  
-#Coefs = Coefs[-1, ]
-#Coefs$term = gsub(":", "+", Coefs$term)
-#Coefs$term = factor(Coefs$term, levels=rev(Coefs$term))
-#Coefs$Sig <- ifelse(Coefs$p.value <0.05,  "*", NA)
-
-PlotListz[[paste("Plot2", z, p)]] = ggplot(Coefs, aes(x=term, y=estimate)) + geom_col(position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+coord_flip() + ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))
-
-AssembledPlots = ggarrange(plotlist = PlotListz, ncol=2, nrow=3)
-
-pdf(paste(y, "_Plots.pdf", sep=""), width=14, height=21)
-print(AssembledPlots)
-dev.off()
-}
-assign(paste(y, "DatasetsList", sep="_"), DatasetsList)
-assign(paste(y, "ModelList", sep="_"), ModelList)
-assign(paste(y, "PlotListz", sep="_"), PlotListz)
-assign(paste(y, "OutputListz", sep="_"), OutputListz)
-assign(paste(y, "AvPList", sep="_"), AvPList)
-}
-
-}#
-
-
-for(a in c("Full Dataset - Day Numeric", "Full Dataset - Day Binary", "Reduced Dataset - All Conditions - Day Numeric", "Reduced Dataset - All Conditions - Day Binary", "Reduced Dataset - N>=3 Only - Day Numeric", "Reduced Dataset - N>=3 Only - Day Binary")){
-TriplePred = cbind(OutputListz[[paste(a,"Linear Model", sep = " - ")]], OutputListz[[paste(a,"Two Way Interaction Model", sep = " - ")]]$Predicted, OutputListz[[paste(a, "Five Way Interaction Model", sep = " - ")]]$Predicted)
-ncols = length(colnames(TriplePred))
-colnames(TriplePred)[ncols] = "FiveWay"
-colnames(TriplePred)[ncols-1] = "TwoWay"
-colnames(TriplePred)[ncols-2] = "Linear"
-colnames(TriplePred)[ncols-3] = "Actual"
-TriplePred$ResidLinear = TriplePred$Actual - TriplePred$Linear
-TriplePred$ResidTwoWay = TriplePred$Actual - TriplePred$TwoWay
-TriplePred$ResidFiveWay = TriplePred$Actual - TriplePred$FiveWay
-
-AvPList[[a]] = TriplePred
-
-sink(paste("CompiledResults", y,  '.csv', sep=""))
-cat('#### Full Dataset - Day Numeric #### \n')
-write.csv(AvPList[["Full Dataset - Day Numeric"]], row.names = F)
-cat('\n ____________________________ \n \n #### Full Dataset - Day Binary #### \n')
-write.csv(AvPList[["Full Dataset - Day Binary"]], row.names = F)
-cat('\n ____________________________ \n \n #### Reduced Dataset - All Conditions - Day Numeric #### \n')
-write.csv(AvPList[["Reduced Dataset - All Conditions - Day Numeric"]], row.names = F)
-cat('\n ____________________________ \n \n #### Reduced Dataset - All Conditions - Day Binary #### \n')
-write.csv(AvPList[["Reduced Dataset - All Conditions - Day Binary"]], row.names = F)
-cat('\n ____________________________ \n \n #### Reduced Dataset - N>=3 Only - Day Numeric #### \n')
-write.csv(AvPList[["Reduced Dataset - N>=3 Only - Day Numeric"]], row.names = F)
-cat('\n ____________________________ \n \n #### Reduced Dataset - N>=3 Only - Day Binary #### \n')
-write.csv(AvPList[["Reduced Dataset - N>=3 Only - Day Binary"]], row.names = F)
-sink() 
-
-}
-
-```
-
-#####EXPLORATORY  ANALYSIS: QPCR
-```{r}
-y = "Dnmt3b"
-p = "Full Dataset"
-z = "Linear Model"
-for(y in c("Morphology", "Rex1", "Oct4", "Dnmt3b", "Fgf5", "Lefty2", "Otx2", "Mixl1", "Dnmt3b")){ #
-DatasetsList = list()
-ModelList = list()
-PlotListz = list()  
-OutputListz = list()
-AvPList = list()
-SingleMetric_AllData =  AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", y)]
-SingleMetric_AllData$Response = SingleMetric_AllData[[y]]
-SingleMetric_AllData[[y]] = NULL
-SingleMetric_AllData = na.omit(SingleMetric_AllData)
-DatasetsList[["Full Dataset"]] = SingleMetric_AllData
-ToExport = SingleMetric_AllData
-ToExport$Combo = NULL
-ToExport$Name = gsub(" ", "", ToExport$Name)
-colnames(ToExport)[1] = "Name"
-write.table(ToExport, paste("FullDataset_", y,"_", Sys.Date(), ".txt", sep=""), sep="\t",row.names=FALSE, quote=F,  eol = "\n")
-
-##DATA PREP - AVERAGED DATASET
-SingleMetric_AllData$Name = NULL
-SingleMetric_AllData$Combo = paste("Day", SingleMetric_AllData$Day, "_", SingleMetric_AllData$Combo, sep="")
-Reduced = SingleMetric_AllData %>% group_by(Combo) %>% summarise_all(funs(mean))
-DatasetsList[["Reduced Dataset - AllConditions"]] = Reduced
-write.table(Reduced, paste("ReducedDataset_AllConditions_", y,"_", Sys.Date(), ".txt", sep=""), sep="\t",row.names=FALSE, quote=F,  eol = "\n")
-
-##DATA PREP - AVERAGED DATASET N=3
-GetReps = as.data.frame(table(SingleMetric_AllData$Combo))
-ThreePlusReps = subset(GetReps, GetReps$Freq >=3)
-Reduced_ThreePlus = subset(Reduced, Reduced$Combo %in% ThreePlusReps$Var1)
-DatasetsList[["Reduced Dataset - N>=3 Only"]] = Reduced_ThreePlus
-write.table(Reduced_ThreePlus, paste("ReducedDataset_N3Only_", y,"_", Sys.Date(), ".txt", sep=""), sep="\t",row.names=FALSE, quote=F,  eol = "\n")
-
-for(p in c("Full Dataset", "Reduced Dataset - AllConditions", "Reduced Dataset - N>=3 Only")){
-p2 = gsub(" ", "", gsub("-", "_", gsub(">=", "", p)))
-ModelList[["Linear Model"]] = lm(Response~U+S+L+R+P, DatasetsList[[p]])
-ModelList[["Two Way Interaction Model"]] = lm(Response~(U+S+L+R+P)^2, DatasetsList[[p]])
-ModelList[["Five Way Interaction Model"]] = lm(Response~(U+S+L+R+P)^5, DatasetsList[[p]])
-
-for(z in c("Linear Model", "Two Way Interaction Model", "Five Way Interaction Model")){
-Stats = glance(ModelList[[z]])
-Stats = glance(ModelList[[z]])
-
-CheckNCV =  tryCatch(ncvTest(ModelList[[z]]), error=function(err) NA)
-if(is.logical(CheckNCV)== T){Stats$NCV = "NA"}else{Stats$NCV = CheckNCV[[5]]}
-Stats$SW_Input = shapiro.test(DatasetsList[[p]]$Response)[[2]]
-CheckSWR =  tryCatch(shapiro.test(residuals(ModelList[[z]])), error=function(err) NA)
-if(is.logical(CheckSWR)== T){Stats$SW_Residuals = "NA"}else{Stats$SW_Residuals = CheckSWR[[2]]}
-Stats$LOOCV = calc_loocv_rmse(ModelList[[z]])
-Stats$BPTest =  bptest(ModelList[[z]])[[4]]
-
-
-Coefs = tidy(ModelList[[z]])
-CoefsSig = subset(Coefs, Coefs$p.value < 0.05)
-
-GetPredicted = as.data.frame(ModelList[[z]]$fitted.values)
-ActvPred = as.data.frame(cbind(DatasetsList[[p]], GetPredicted$`ModelList[[z]]$fitted.values`))
-colnames(ActvPred) = c(colnames(DatasetsList[[p]]), "Predicted")
-OutputListz[[paste(p2,z, sep = " - ")]] = ActvPred
-
-z2 = gsub(" ", "", z)
-sink(paste(y, "_", p2, "_", z2, '.csv', sep=""))
-cat('#### STATS #### \n')
-write.csv(Stats, row.names = F)
-cat('\n ____________________________ \n \n #### SIG COEFS #### \n')
-write.csv(CoefsSig, row.names = F)
-cat('\n #### ALL COEFS #### \n')
-write.csv(Coefs, row.names = F)
-cat('\n ____________________________ \n \n #### ACTUAL v PREDICT #### \n')
-write.csv(ActvPred, row.names = F)
-sink() 
-
-
-Stats$Dataset = p
-Stats$ModelType = z
-Stats$Variable = y
-CompiledData = rbind(CompiledData, Stats)
-
-PlotListz[[paste("Plot1", z, p)]] = ggplot(ActvPred, aes(x=Response, y=Predicted, label = paste("  Adj-Rsq: ", round(Stats$adj.r.squared, digits=2), " \n  AIC: ", round(Stats$AIC, digits=2), " \n  BIC: ", round(Stats$BIC, digits=2),  " \n  LOOCV: ", round(Stats$LOOCV, digits=2),  sep=""))) + geom_point() + xlab("Actual") + theme_classic() + geom_smooth(method="lm", color="black") + ggtitle(paste(z, " [", p, "]", sep="")) + geom_text(label = paste("  Adj-Rsq: ", round(Stats$adj.r.squared, digits=2), " \n  AIC: ", round(Stats$AIC, digits=2), " \n  BIC: ", round(Stats$BIC, digits=2),  " \n  LOOCV: ", round(Stats$LOOCV, digits=2),  sep=""), x = -Inf, y = Inf, hjust = 0, vjust = 1)
-  
-
-Coefs = Coefs[-1, ]
-Coefs$term = gsub(":", "+", Coefs$term)
-Coefs$term = factor(Coefs$term, levels=rev(Coefs$term))
-Coefs$Sig <- ifelse(Coefs$p.value <0.05,  "*", NA)
-
-PlotListz[[paste("Plot2", z, p)]] = ggplot(Coefs, aes(x=term, y=estimate)) + geom_col(position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+coord_flip() + ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))
-
-AssembledPlots = ggarrange(plotlist = PlotListz, ncol=2, nrow=3)
-
-pdf(paste(y, "_Plots.pdf", sep=""), width=14, height=21)
-print(AssembledPlots)
-dev.off()
-
-ActvPred$ModelType = z2
-ActvPred$Dataset = p2
-Coefs$ModelType = z2
-Coefs$Dataset = p2
-
-AvPListALL[[paste(y, p2, z2, sep="_")]] = ActvPred
-StatsListALL[[paste(y, p2, z2, sep="_")]] = Stats
-CoefsListALL[[paste(y, p2, z2, sep="_")]] = Coefs
+Reduced_ThreePlus$Response = log(Reduced_ThreePlus$Response+1)  
 }}
-
-for(a in c("FullDataset", "ReducedDataset_AllConditions", "ReducedDataset_N3Only")){
-TriplePred = cbind(OutputListz[[paste(a,"Linear Model", sep = " - ")]], OutputListz[[paste(a,"Two Way Interaction Model", sep = " - ")]]$Predicted, OutputListz[[paste(a, "Five Way Interaction Model", sep = " - ")]]$Predicted)
-ncols = length(colnames(TriplePred))
-colnames(TriplePred)[ncols] = "FiveWay"
-colnames(TriplePred)[ncols-1] = "TwoWay"
-colnames(TriplePred)[ncols-2] = "Linear"
-colnames(TriplePred)[ncols-3] = "Actual"
-TriplePred$ResidLinear = TriplePred$Actual - TriplePred$Linear
-TriplePred$ResidTwoWay = TriplePred$Actual - TriplePred$TwoWay
-TriplePred$ResidFiveWay = TriplePred$Actual - TriplePred$FiveWay
-
-AvPList[[a]] = TriplePred
-
-#sink(paste("CompiledResults", y,  '.csv', sep=""))
-#cat('#### Full Dataset  #### \n')
-#write.csv(AvPList[["FullDataset"]], row.names = F)
-#cat('\n ____________________________ \n \n #### Reduced Dataset - AllConditions #### \n')
-#write.csv(AvPList[["ReducedDataset_AllConditions"]], row.names = F)
-#cat('\n ____________________________ \n \n #### Reduced Dataset - N>=3 Only #### \n')
-#write.csv(AvPList[["ReducedDataset_N3Only"]], row.names = F)
-#sink() 
-}
-assign(paste(y, "DatasetsList", sep="_"), DatasetsList)
-assign(paste(y, "ModelList", sep="_"), ModelList)
-assign(paste(y, "Coefs", sep="_"), CoefsListALL)
-assign(paste(y, "StatsList", sep="_"), StatsListALL)
-assign(paste(y, "AvPList", sep="_"), AvPList)
+  
+##If Power then
+if(grepl("Power", GoI_X, fixed = TRUE) == T){
+GetPower = extract_numeric(GoI_X)
+Reduced_ThreePlus$Response = Reduced_ThreePlus$Response^GetPower
 }
 
+##If binned (each bin makes up a fixed % n, different no. samples in each bin)
+if(grepl("Binned", GoI_X, fixed = TRUE) == T){
+GetBins = extract_numeric(GoI_X)
+Reduced_ThreePlus$Response = cut(Reduced_ThreePlus$Response, breaks = GetBins, labels = c(seq(1, GetBins, 1)))
+Reduced_ThreePlus$Response = as.numeric(Reduced_ThreePlus$Response)
+}    
+##If Ntiled (each bin the same size)
+if(grepl("Ntile", GoI_X, fixed = TRUE) == T){
+GetNtile = extract_numeric(GoI_X)
+Reduced_ThreePlus$Response = ntile(Reduced_ThreePlus$Response, GetNtile)
+}      
+}  
+##########
+
+### RANDOM TEST/TRAIN SPLITS
+SummaryOutput = data.frame(matrix(ncol=6, nrow=0))
+colnames(SummaryOutput) = c("Train_Rsq", "Train_SE", "Test_Rsq", "Test_SE",   "NSig", "SigCoefsTrain")
+for(x in seq(1,50,1)){
+  
+  
+RandomSplit= sample(1:dim(ThreePlusReps)[1], round(dim(ThreePlusReps)[1]*0.2), replace=FALSE)
+DataTest = subset(Reduced_ThreePlus, row.names(Reduced_ThreePlus) %in% RandomSplit)
+DataTrain = subset(Reduced_ThreePlus, row.names(Reduced_ThreePlus) %notin% RandomSplit)
+
+##########
+
+########## RUN MODELS ##########
+ModelList = list()
+p2 = gsub(" ", "", gsub("-", "_", gsub(">=", "", GoI)))
+LinearTrain = lm(Response~U+S+L+R+P, DataTrain)
+#ModelList[["Two Way"]] = lm(Response~(U+S+L+R+P)^2, DataTrain)
+LinearTest = predict(LinearTrain, DataTest)
+Model.testwdf = as.data.frame(cbind(DataTest$Response, LinearTest))
+colnames(Model.testwdf) = c("Actual", "TestPred")
+Modeltest_getRsq = lm(Actual~TestPred, Model.testwdf)
+
+NSignif = data.frame(summary(LinearTrain)$coef)
+NSignif = subset(NSignif, NSignif$Pr...t.. <0.05 & row.names(NSignif) %notin% "(Intercept)")
+Colnames_Signif = paste(row.names(NSignif), collapse=", ")
+
+TrainOutput = as.data.frame(cbind(summary(LinearTrain)$r.squared, summary(LinearTrain)$sigma,  summary(Modeltest_getRsq)$r.squared, summary(Modeltest_getRsq)$sigma,  dim(NSignif)[1], Colnames_Signif))
+colnames(TrainOutput) = c("Train_Rsq", "Train_SE", "Test_Rsq", "Test_SE",   "NSig", "SigCoefsTrain")
+SummaryOutput = rbind(SummaryOutput, TrainOutput)
+}
+
+SummaryOutput[1:4] = as.data.frame(apply(SummaryOutput[1:4], 2, as.numeric))
+
+OutputMean = as.data.frame(t(colMeans(SummaryOutput[1:4])))
+OutputMedians = as.data.frame(t(colMedians(as.matrix(SummaryOutput[1:4]))))
+OutputMin = as.data.frame(t(apply(SummaryOutput,2,min)))
+OutputMax = as.data.frame(t(apply(SummaryOutput,2,max)))
+
+OutputMean$NSig = NA
+OutputMean$SigCoefsTrain = NA
+OutputMedians$NSig = NA
+OutputMedians$SigCoefsTrain = NA
+row.names(OutputMean) = "Mean"
+row.names(OutputMedians) = "Median"
+row.names(OutputMin) = "Min"
+row.names(OutputMax) = "Max"
+
+SummaryOutput = rbind(SummaryOutput, OutputMean, OutputMedians, OutputMin, OutputMax)
+write.csv(SummaryOutput, paste(GoI_X, "_Iterations.csv", sep=""))
+}
 
 
-#write.csv(CompiledData, "CompiledModelOutputs.csv", row.names = 1)
 
-Check = OutputListz[["ReducedDataset_N3Only - Linear Model"]]
+
+
+
+#################### 6 COEFS #################### 
+Data_To_Plot = "Prolif" #c("Prolif_Ntile_8", "CellNoNorm", "Apoptosis_Log", "Prolif_Power_6", "Apoptosis") 
+GEXPanel = list()
+FiveWaySupplemental = list()
+NRows = length(Data_To_Plot)
+for(GoI_X in Data_To_Plot){ 
+GoI = gsub("_.*", "", GoI_X)
+
+########## DATA PREP ##########
+SingleMetric_AllData = as.data.frame(matrix(ncol=9, nrow=0))
+colnames(SingleMetric_AllData) = c("Name", "Combo", "U", "S", "L", "R", "P", "Day", GoI)
+for(x in c(2,4,6)){
+SingleMetric_SingleDay = AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", paste(GoI, x, sep="_"))]
+SingleMetric_SingleDay$Day = x
+colnames(SingleMetric_SingleDay) = gsub("_.*", "", colnames(SingleMetric_SingleDay))
+SingleMetric_AllData = rbind(SingleMetric_AllData, SingleMetric_SingleDay)
+}
+SingleMetric_AllData = na.omit(SingleMetric_AllData)
+SingleMetric_AllData$Name = NULL
+SingleMetric_AllData$Response = SingleMetric_AllData[[GoI]]
+SingleMetric_AllData[[GoI]] = NULL
+
+
+SingleMetric_AllData$Combo = paste("Day", SingleMetric_AllData$Day, "_", SingleMetric_AllData$Combo, sep="")
+Reduced = SingleMetric_AllData %>% group_by(Combo) %>% summarise_all(funs(mean))
+
+Reduced$Day2 =  ifelse(Reduced$Day == 2,  1, 0)
+Reduced$Day4 =  ifelse(Reduced$Day == 4,  1, 0)
+Reduced$Day6 =  ifelse(Reduced$Day == 6,  1, 0)
+Reduced$Day = NULL
+
+GetReps = as.data.frame(table(SingleMetric_AllData$Combo))
+ThreePlusReps = subset(GetReps, GetReps$Freq >=3)
+Reduced_ThreePlus = subset(Reduced, Reduced$Combo %in% ThreePlusReps$Var1)
+##########
+
+########## APPLY TRANSFORMATIONS IF REQUIRED ##########
+if(GoI_X %notin% GoI){
+#If log then  
+if(grepl("Log", GoI_X, fixed = TRUE) == T){
+if(min(Reduced_ThreePlus$Response) > 0){
+Reduced_ThreePlus$Response = log(Reduced_ThreePlus$Response)  
+}else{
+Reduced_ThreePlus$Response = log(Reduced_ThreePlus$Response+1)  
+}}
+  
+##If Power then
+if(grepl("Power", GoI_X, fixed = TRUE) == T){
+GetPower = extract_numeric(GoI_X)
+Reduced_ThreePlus$Response = Reduced_ThreePlus$Response^GetPower
+}
+
+##If binned (each bin makes up a fixed % n, different no. samples in each bin)
+if(grepl("Binned", GoI_X, fixed = TRUE) == T){
+GetBins = extract_numeric(GoI_X)
+Reduced_ThreePlus$Response = cut(Reduced_ThreePlus$Response, breaks = GetBins, labels = c(seq(1, GetBins, 1)))
+Reduced_ThreePlus$Response = as.numeric(Reduced_ThreePlus$Response)
+}    
+##If Ntiled (each bin the same size)
+if(grepl("Ntile", GoI_X, fixed = TRUE) == T){
+GetNtile = extract_numeric(GoI_X)
+Reduced_ThreePlus$Response = ntile(Reduced_ThreePlus$Response, GetNtile)
+}      
+}  
+##########
+
+### RANDOM TEST/TRAIN SPLITS
+SummaryOutput = data.frame(matrix(ncol=6, nrow=0))
+colnames(SummaryOutput) = c("Train_Rsq", "Train_SE", "Test_Rsq", "Test_SE",   "NSig", "SigCoefsTrain")
+for(x in seq(1,50,1)){
+  
+  
+RandomSplit= sample(1:dim(ThreePlusReps)[1], round(dim(ThreePlusReps)[1]*0.2), replace=FALSE)
+DataTest = subset(Reduced_ThreePlus, row.names(Reduced_ThreePlus) %in% RandomSplit)
+DataTrain = subset(Reduced_ThreePlus, row.names(Reduced_ThreePlus) %notin% RandomSplit)
+
+##########
+
+########## RUN MODELS ##########
+ModelList = list()
+p2 = gsub(" ", "", gsub("-", "_", gsub(">=", "", GoI)))
+LinearTrain = lm(Response~U+S+L+R+P, DataTrain)
+#ModelList[["Two Way"]] = lm(Response~(U+S+L+R+P)^2, DataTrain)
+LinearTest = predict(LinearTrain, DataTest)
+Model.testwdf = as.data.frame(cbind(DataTest$Response, LinearTest))
+colnames(Model.testwdf) = c("Actual", "TestPred")
+Modeltest_getRsq = lm(Actual~TestPred, Model.testwdf)
+
+NSignif = data.frame(summary(LinearTrain)$coef)
+NSignif = subset(NSignif, NSignif$Pr...t.. <0.05 & row.names(NSignif) %notin% "(Intercept)")
+Colnames_Signif = paste(row.names(NSignif), collapse=", ")
+
+TrainOutput = as.data.frame(cbind(summary(LinearTrain)$r.squared, summary(LinearTrain)$sigma,  summary(Modeltest_getRsq)$r.squared, summary(Modeltest_getRsq)$sigma,  dim(NSignif)[1], Colnames_Signif))
+colnames(TrainOutput) = c("Train_Rsq", "Train_SE", "Test_Rsq", "Test_SE",   "NSig", "SigCoefsTrain")
+SummaryOutput = rbind(SummaryOutput, TrainOutput)
+}
+
+SummaryOutput[1:4] = as.data.frame(apply(SummaryOutput[1:4], 2, as.numeric))
+
+OutputMean = as.data.frame(t(colMeans(SummaryOutput[1:4])))
+OutputMedians = as.data.frame(t(colMedians(as.matrix(SummaryOutput[1:4]))))
+OutputMin = as.data.frame(t(apply(SummaryOutput,2,min)))
+OutputMax = as.data.frame(t(apply(SummaryOutput,2,max)))
+
+OutputMean$NSig = NA
+OutputMean$SigCoefsTrain = NA
+OutputMedians$NSig = NA
+OutputMedians$SigCoefsTrain = NA
+row.names(OutputMean) = "Mean"
+row.names(OutputMedians) = "Median"
+row.names(OutputMin) = "Min"
+row.names(OutputMax) = "Max"
+
+SummaryOutput = rbind(SummaryOutput, OutputMean, OutputMedians, OutputMin, OutputMax)
+write.csv(SummaryOutput, paste(GoI_X, "_Iterations.csv", sep=""))
+}
 ```
 
-#EXPLORATORY  ANALYSIS: Improving non-normal datasets
-```{r}
-#For Apoptosis
-DatasetsList = list()
-SingleMetric_AllData = as.data.frame(matrix(ncol=9, nrow=0))
-colnames(SingleMetric_AllData) = c("Name", "Combo", "U", "S", "L", "R", "P", "Day", "Apoptosis")
-
-for(x in c(2,4,6)){
-SingleMetric_SingleDay = AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", paste("Apoptosis", x, sep="_"))]
-SingleMetric_SingleDay$Day = x
-colnames(SingleMetric_SingleDay) = gsub("_.*", "", colnames(SingleMetric_SingleDay))
-SingleMetric_AllData = rbind(SingleMetric_AllData, SingleMetric_SingleDay)
-}
-SingleMetric_AllData = na.omit(SingleMetric_AllData)
-
-SingleMetric_AllData$Name = gsub(" ", "", SingleMetric_AllData$Name)
-SingleMetric_AllData$Response = SingleMetric_AllData[["Apoptosis"]]
-SingleMetric_AllData[["Apoptosis"]] = NULL
-DatasetsList[["Full Dataset - Day Numeric"]] = SingleMetric_AllData
-SingleMetric_AllData$Name = NULL
-SingleMetric_AllData$Combo = paste("Day", SingleMetric_AllData$Day, "_", SingleMetric_AllData$Combo, sep="")
-
-Reduced = SingleMetric_AllData %>% group_by(Combo) %>% summarise_all(funs(mean))
-DatasetsList[["Reduced Dataset - All Conditions - Day Numeric"]] = Reduced
-GetReps = as.data.frame(table(SingleMetric_AllData$Combo))
-ThreePlusReps = subset(GetReps, GetReps$Freq >=3)
-Reduced_ThreePlus = subset(Reduced, Reduced$Combo %in% ThreePlusReps$Var1)
-DatasetsList[["Reduced Dataset - N>=3 Only - Day Numeric"]] = Reduced_ThreePlus
-APOP_Reduced_ThreePlus = Reduced_ThreePlus
-
-shapiro.test(APOP_Reduced_ThreePlus$Response) #5.282e-05
-shapiro.test(log(APOP_Reduced_ThreePlus$Response)) #0.07329
-
-###################################################################################
-
-#For Prolif
-DatasetsList = list()
-SingleMetric_AllData = as.data.frame(matrix(ncol=9, nrow=0))
-colnames(SingleMetric_AllData) = c("Name", "Combo", "U", "S", "L", "R", "P", "Day", "Prolif")
-
-for(x in c(2,4,6)){
-SingleMetric_SingleDay = AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", paste("Prolif", x, sep="_"))]
-SingleMetric_SingleDay$Day = x
-colnames(SingleMetric_SingleDay) = gsub("_.*", "", colnames(SingleMetric_SingleDay))
-SingleMetric_AllData = rbind(SingleMetric_AllData, SingleMetric_SingleDay)
-}
-SingleMetric_AllData = na.omit(SingleMetric_AllData)
-
-SingleMetric_AllData$Name = gsub(" ", "", SingleMetric_AllData$Name)
-SingleMetric_AllData$Response = SingleMetric_AllData[["Prolif"]]
-SingleMetric_AllData[["Prolif"]] = NULL
-DatasetsList[["Full Dataset - Day Numeric"]] = SingleMetric_AllData
-SingleMetric_AllData$Name = NULL
-SingleMetric_AllData$Combo = paste("Day", SingleMetric_AllData$Day, "_", SingleMetric_AllData$Combo, sep="")
-
-Reduced = SingleMetric_AllData %>% group_by(Combo) %>% summarise_all(funs(mean))
-DatasetsList[["Reduced Dataset - All Conditions - Day Numeric"]] = Reduced
-GetReps = as.data.frame(table(SingleMetric_AllData$Combo))
-ThreePlusReps = subset(GetReps, GetReps$Freq >=3)
-Reduced_ThreePlus = subset(Reduced, Reduced$Combo %in% ThreePlusReps$Var1)
-DatasetsList[["Reduced Dataset - N>=3 Only - Day Numeric"]] = Reduced_ThreePlus
-Prolif_Reduced_ThreePlus = Reduced_ThreePlus
-
-
-shapiro.test(Prolif_Reduced_ThreePlus$Response) #8.173e-10
-shapiro.test(log(Prolif_Reduced_ThreePlus$Response)) #6.705e-12
-shapiro.test(Prolif_Reduced_ThreePlus$Response^2) #1.373e-07
-shapiro.test(Prolif_Reduced_ThreePlus$Response^3) #1.956e-05
-shapiro.test(Prolif_Reduced_ThreePlus$Response^4) #0.00136
-shapiro.test(Prolif_Reduced_ThreePlus$Response^5) #0.0272
-shapiro.test(Prolif_Reduced_ThreePlus$Response^6) #0.1237 ###IS GOOD
-
-###################################################################################
 
 
 
-#For CellNo.Norm
-DatasetsList = list()
-SingleMetric_AllData = as.data.frame(matrix(ncol=9, nrow=0))
-colnames(SingleMetric_AllData) = c("Name", "Combo", "U", "S", "L", "R", "P", "Day", "CellNo.Norm")
-
-for(x in c(2,4,6)){
-SingleMetric_SingleDay = AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", paste("CellNo.Norm", x, sep="_"))]
-SingleMetric_SingleDay$Day = x
-colnames(SingleMetric_SingleDay) = gsub("_.*", "", colnames(SingleMetric_SingleDay))
-SingleMetric_AllData = rbind(SingleMetric_AllData, SingleMetric_SingleDay)
-}
-SingleMetric_AllData = na.omit(SingleMetric_AllData)
-
-SingleMetric_AllData$Name = gsub(" ", "", SingleMetric_AllData$Name)
-SingleMetric_AllData$Response = SingleMetric_AllData[["CellNo.Norm"]]
-SingleMetric_AllData[["CellNo.Norm"]] = NULL
-DatasetsList[["Full Dataset - Day Numeric"]] = SingleMetric_AllData
-SingleMetric_AllData$Name = NULL
-SingleMetric_AllData$Combo = paste("Day", SingleMetric_AllData$Day, "_", SingleMetric_AllData$Combo, sep="")
-
-Reduced = SingleMetric_AllData %>% group_by(Combo) %>% summarise_all(funs(mean))
-DatasetsList[["Reduced Dataset - All Conditions - Day Numeric"]] = Reduced
-GetReps = as.data.frame(table(SingleMetric_AllData$Combo))
-ThreePlusReps = subset(GetReps, GetReps$Freq >=3)
-Reduced_ThreePlus = subset(Reduced, Reduced$Combo %in% ThreePlusReps$Var1)
-DatasetsList[["Reduced Dataset - N>=3 Only - Day Numeric"]] = Reduced_ThreePlus
-CellNo.Norm_Reduced_ThreePlus = Reduced_ThreePlus
-
-
-shapiro.test(CellNo.Norm_Reduced_ThreePlus$Response) #0.0007001
-shapiro.test(log(CellNo.Norm_Reduced_ThreePlus$Response+1)) #0.0001969
-
-shapiro.test(log(CellNo.Norm_Reduced_ThreePlus$Response+0.0001)) #1.29e-14
-shapiro.test(log10(CellNo.Norm_Reduced_ThreePlus$Response+0.0001)) #1.29e-14
-shapiro.test(log2(CellNo.Norm_Reduced_ThreePlus$Response+0.0001)) #1.29e-14
-
-shapiro.test(CellNo.Norm_Reduced_ThreePlus$Response^2) #8.999e-09
-shapiro.test(CellNo.Norm_Reduced_ThreePlus$Response^3) #2.134e-12
-shapiro.test(sqrt(CellNo.Norm_Reduced_ThreePlus$Response)) #1.424e-06
-shapiro.test(sqrt(max((CellNo.Norm_Reduced_ThreePlus$Response)+1)-CellNo.Norm_Reduced_ThreePlus$Response)) #0.0004799
-
-shapiro.test((1/(CellNo.Norm_Reduced_ThreePlus$Response+0.0001))) # 2.2e-16
-
-CellNo.Norm_Reduced_ThreePlus$invert = 1/(CellNo.Norm_Reduced_ThreePlus$Response+0.0001)
 
 
 
-CellNo.Norm_Reduced_ThreePlus_4Q = CellNo.Norm_Reduced_ThreePlus %>%  top_n(n = 24, wt = Response)
-CellNo.Norm_Reduced_ThreePlus_1Q = CellNo.Norm_Reduced_ThreePlus %>%  top_n(n = -24, wt = Response)
-MiddleQ_CellNo.Norm = subset(CellNo.Norm_Reduced_ThreePlus, CellNo.Norm_Reduced_ThreePlus$Combo %notin% c(CellNo.Norm_Reduced_ThreePlus_1Q$Combo, CellNo.Norm_Reduced_ThreePlus_4Q$Combo))
-CellNo.Norm_Reduced_ThreePlus_3Q = MiddleQ_CellNo.Norm %>%  top_n(n = 24, wt = Response)
-CellNo.Norm_Reduced_ThreePlus_2Q = MiddleQ_CellNo.Norm %>%  top_n(n = -24, wt = Response)
-
-CellNo.Norm_Reduced_ThreePlus_4Q$Quartile = 4
-CellNo.Norm_Reduced_ThreePlus_3Q$Quartile = 3
-CellNo.Norm_Reduced_ThreePlus_2Q$Quartile = 2
-CellNo.Norm_Reduced_ThreePlus_1Q$Quartile = 1
-
-CellNo.Norm_Reduced_ThreePlus_Quartiles = rbind(CellNo.Norm_Reduced_ThreePlus_4Q, CellNo.Norm_Reduced_ThreePlus_3Q, CellNo.Norm_Reduced_ThreePlus_2Q, CellNo.Norm_Reduced_ThreePlus_1Q)
-
-
-shapiro.test(CellNo.Norm_Reduced_ThreePlus_Quartiles$Quartile)# 0.000444
-
-CellNo.Norm_Reduced_ThreePlus_Quartiles_lm = lm(Quartile~Day+U+S+L+R+P, CellNo.Norm_Reduced_ThreePlus_Quartiles)
-
-CellNo.Norm_Reduced_ThreePlus_lm = lm(Response~Day+U+S+L+R+P, CellNo.Norm_Reduced_ThreePlus)
-
-
-###################################################################################
-
-#For CellNo.Raw
-DatasetsList = list()
-SingleMetric_AllData = as.data.frame(matrix(ncol=9, nrow=0))
-colnames(SingleMetric_AllData) = c("Name", "Combo", "U", "S", "L", "R", "P", "Day", "CellNo.Raw")
-
-for(x in c(2,4,6)){
-SingleMetric_SingleDay = AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", paste("CellNo.Raw", x, sep="_"))]
-SingleMetric_SingleDay$Day = x
-colnames(SingleMetric_SingleDay) = gsub("_.*", "", colnames(SingleMetric_SingleDay))
-SingleMetric_AllData = rbind(SingleMetric_AllData, SingleMetric_SingleDay)
-}
-SingleMetric_AllData = na.omit(SingleMetric_AllData)
-
-SingleMetric_AllData$Name = gsub(" ", "", SingleMetric_AllData$Name)
-SingleMetric_AllData$Response = SingleMetric_AllData[["CellNo.Raw"]]
-SingleMetric_AllData[["CellNo.Raw"]] = NULL
-DatasetsList[["Full Dataset - Day Numeric"]] = SingleMetric_AllData
-SingleMetric_AllData$Name = NULL
-SingleMetric_AllData$Combo = paste("Day", SingleMetric_AllData$Day, "_", SingleMetric_AllData$Combo, sep="")
-
-Reduced = SingleMetric_AllData %>% group_by(Combo) %>% summarise_all(funs(mean))
-DatasetsList[["Reduced Dataset - All Conditions - Day Numeric"]] = Reduced
-GetReps = as.data.frame(table(SingleMetric_AllData$Combo))
-ThreePlusReps = subset(GetReps, GetReps$Freq >=3)
-Reduced_ThreePlus = subset(Reduced, Reduced$Combo %in% ThreePlusReps$Var1)
-DatasetsList[["Reduced Dataset - N>=3 Only - Day Numeric"]] = Reduced_ThreePlus
-CellNo.Raw_Reduced_ThreePlus = Reduced_ThreePlus
-
-
-shapiro.test(CellNo.Raw_Reduced_ThreePlus$Response)# 0.000444
-shapiro.test(log(CellNo.Raw_Reduced_ThreePlus$Response+0.0001)) #2.2e-16
-shapiro.test((CellNo.Raw_Reduced_ThreePlus$Response+0.001)^-2) #1.237e-09
-
-
-CellNo.Raw_Reduced_ThreePlus_lm = lm(Response~Day+U+S+L+R+P, CellNo.Raw_Reduced_ThreePlus)
-bc <- boxcox(Response+0.001~Day+U+S+L+R+P, data = CellNo.Raw_Reduced_ThreePlus)
-lambda <- bc$x[which.max(bc$y)]
-shapiro.test((CellNo.Raw_Reduced_ThreePlus$Response+0.001)^-0.3) #1.237e-09
-
-
-boxCox(CellNo.Raw_Reduced_ThreePlus_lm)
-BPDATA = bptest(CellNo.Raw_Reduced_ThreePlus_lm)[[4]]
-
-Check = bptest(CellNo.Raw_Reduced_ThreePlus_lm)[[4]]
-
-shapiro.test(boxCoxVariable(CellNo.Raw_Reduced_ThreePlus$Response+0.001))
-
-hist(CellNo.Raw_Reduced_ThreePlus$Response)
-hist(CellNo.Norm_Reduced_ThreePlus$Response)
-
-
-###################################################################################
-SingleMetric_AllData =  AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", "Morphology")]
-SingleMetric_AllData$Response = SingleMetric_AllData[["Morphology"]]
-SingleMetric_AllData[["Morphology"]] = NULL
-SingleMetric_AllData = na.omit(SingleMetric_AllData)
-DatasetsList[["Full Dataset"]] = SingleMetric_AllData
-##DATA PREP - AVERAGED DATASET
-SingleMetric_AllData$Name = NULL
-SingleMetric_AllData$Combo = paste("Day", SingleMetric_AllData$Day, "_", SingleMetric_AllData$Combo, sep="")
-Reduced = SingleMetric_AllData %>% group_by(Combo) %>% summarise_all(funs(mean))
-DatasetsList[["Reduced Dataset - AllConditions"]] = Reduced
-##DATA PREP - AVERAGED DATASET N=3
-GetReps = as.data.frame(table(SingleMetric_AllData$Combo))
-ThreePlusReps = subset(GetReps, GetReps$Freq >=3)
-Reduced_ThreePlus = subset(Reduced, Reduced$Combo %in% ThreePlusReps$Var1)
-DatasetsList[["Reduced Dataset - N>=3 Only"]] = Reduced_ThreePlus
-Morphology_ThreePlus = Reduced_ThreePlus
-
-shapiro.test(Morphology_ThreePlus$Response) #0.01605
-shapiro.test(log(Morphology_ThreePlus$Response)) #0.7047 #Looks good
-```
