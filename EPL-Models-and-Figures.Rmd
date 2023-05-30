@@ -3,13 +3,6 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-#TO DO
-```{r}
-#Replace all ifelse for significance with merge
-#Go through figure by figure and check code
-#Generate versions with and without BRANNs
-```
-
 ```{r}
 library(broom)
 library(tidyverse)
@@ -93,7 +86,7 @@ MorphwStats <- MorphwStats[order(MorphwStats$Condition),]
 MorphwStats$ConditionWn = factor(MorphwStats$ConditionWn, levels = MorphwStats$ConditionWn)
 
 ControlFig = list()
-ControlFig[[paste("Morphology", "_i_Control", sep="")]] = ggplot(MorphwStats, aes(x=ConditionWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ ggtitle("") + theme_classic() + ylab("Morphology Score") + xlab("")+ geom_point( aes(colour = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*6))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8))   + theme(plot.title = element_text(face = "bold"), axis.title = element_text(size =8), axis.text = element_text(size =8)) + scale_y_continuous(limits = c(0,2.2), expand = c(0,0))+ geom_point(data=Morph_Controls_merge, aes(x = ConditionWn, y =Value), size=0.5)
+ControlFig[[paste("Morphology", "_i_Control", sep="")]] = ggplot(MorphwStats, aes(x=ConditionWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ ggtitle("") + theme_classic() + ylab("Morphology Score") + xlab("")+ geom_point( aes(colour = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*6))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8))   + theme(plot.title = element_text(face = "bold"), axis.text.x = element_text(face = "bold", size =8), axis.text.y = element_text(size =8), axis.title.y = element_text(size=8)) + scale_y_continuous(limits = c(0,2.2), expand = c(0,0))+ geom_point(data=Morph_Controls_merge, aes(x = ConditionWn, y =Value), size=0.5)
 
 pdf(paste(FilePath, "Figure1B_MorphControls.pdf", sep=""), height = 2.5, width = 4)
 print(ControlFig)
@@ -159,13 +152,13 @@ Subs$ConditionWn = factor(Subs$ConditionWn)
 Subs2 = subset(CompileData2, CompileData2$Condition %in% x)
 Subs2$ConditionWn = factor(Subs2$ConditionWn)
   
-GEXPanel_Controls[[x]] = ggplot(Subs, aes(x=ConditionWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic()  + xlab("")+ geom_point(aes(colour = ColourTwoWay,  shape = Sig, y = Mean + sign(Mean) * (se + (se*errormargin))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme(plot.title = element_text(size = 15, face = "bold"), strip.background = element_blank(), strip.text.x = element_text(size = 12), axis.title = element_text(size=8), axis.text = element_text(size=8))  + scale_y_continuous(limits = c(0, GetMaxHeight), expand = c(0,0))  + scale_x_discrete(labels = Subs$ConditionWn) + geom_point(data=Subs2, aes(x = ConditionWn, y =Value), size=0.3) 
+GEXPanel_Controls[[x]] = ggplot(Subs, aes(x=ConditionWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic()  + xlab("")+ geom_point(aes(colour = ColourTwoWay,  shape = Sig, y = Mean + sign(Mean) * (se + (se*errormargin))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme(plot.title = element_text(face = "bold", size = 15), strip.background = element_blank(), strip.text.x = element_text(face = "bold", size = 12), axis.title = element_text(size=8), axis.text.y = element_text(size=8), axis.text.x = element_text(size=8, face = "bold"))  + scale_y_continuous(limits = c(0, GetMaxHeight), expand = c(0,0))  + scale_x_discrete(labels = Subs$ConditionWn) + geom_point(data=Subs2, aes(x = ConditionWn, y =Value), size=0.3) 
 }
 
-GEXPanel_Controls[[1]] = GEXPanel_Controls[[1]] + ylab(Control_Ylab) + ggtitle("", subtitle = "1000 U/mL \nLIF") + theme(plot.subtitle = element_text(size = 8, face="italic"))
-GEXPanel_Controls[[2]] = GEXPanel_Controls[[2]] + ggtitle("", subtitle = "330 U/mL LIF") + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank()) + theme(plot.subtitle = element_text(size = 8, face="italic"))
-GEXPanel_Controls[[3]] = GEXPanel_Controls[[3]] + ggtitle("", subtitle = "330 U/mL LIF  \n+ Pro")  + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank())+ theme(plot.subtitle = element_text(size = 8, face="italic"))
-GEXPanel_Controls[[4]] = GEXPanel_Controls[[4]] + ggtitle("", subtitle = "0 U/mL LIF" )  + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank())+ theme(plot.subtitle = element_text(size = 8, face="italic"))
+GEXPanel_Controls[[1]] = GEXPanel_Controls[[1]] + ylab(Control_Ylab) + ggtitle("", subtitle = "1000 U/mL \nLIF") + theme(plot.subtitle = element_text(size = 8, face="italic"), axis.title = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"), axis.text.y = element_text(size = 8))
+GEXPanel_Controls[[2]] = GEXPanel_Controls[[2]] + ggtitle("", subtitle = "330 U/mL LIF") + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank()) + theme(plot.subtitle = element_text(size = 8, face="italic"), axis.text = element_text(size = 8, face = "bold"))
+GEXPanel_Controls[[3]] = GEXPanel_Controls[[3]] + ggtitle("", subtitle = "330 U/mL LIF  \n+ Pro")  + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank())+ theme(plot.subtitle = element_text(size = 8, face="italic"), axis.text = element_text(size = 8, face = "bold"))
+GEXPanel_Controls[[4]] = GEXPanel_Controls[[4]] + ggtitle("", subtitle = "0 U/mL LIF" )  + theme(axis.text.y = element_blank(), axis.line.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank())+ theme(plot.subtitle = element_text( size = 8, face="italic"), axis.text = element_text(size = 8, face = "bold"))
 
 ControlFig[[paste(GoI, "_i_Control", sep="")]] = ggarrange(plotlist =  GEXPanel_Controls, nrow=1, widths = c(1.3,1,1,1))
 }
@@ -228,9 +221,9 @@ SubE = unique(SubE)
 SubD = merge(SubD, SubE, by = "Day")
 errormargin = 1
 if(y == "Rex1"){
-CompileQPCR[[paste(x, y)]] = ggplot(SubC, aes(x=DayWn, y=Mean))+ facet_wrap(~Gene, nrow = 1)+geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + ylab(expression(Log[2]~Fold~Change)) + xlab("")+ geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean  + sign(Mean) * (stdev + errormargin)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme(strip.text = element_text(size = 8, face = "bold.italic"), strip.background = element_blank(), axis.title.y = element_text(size = 8), axis.text = element_text(size = 8)) +geom_hline(yintercept=0) + scale_y_continuous(limits = c(-7, 12), expand = c(0,0)) + scale_x_discrete(labels = SubC$DayWn) + geom_point(data=SubD, aes(x = DayWn, y =Value), size=0.3)  
+CompileQPCR[[paste(x, y)]] = ggplot(SubC, aes(x=DayWn, y=Mean))+ facet_wrap(~Gene, nrow = 1)+geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + ylab(expression(Log[2]~Fold~Change)) + xlab("")+ geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean  + sign(Mean) * (stdev + errormargin)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme(strip.text = element_text( size = 8, face = "bold.italic"), strip.background = element_blank(), axis.title.y = element_text(face = "bold", size = 8), axis.text.x = element_text(face = "bold", size = 8), axis.text.y = element_text(size = 8), axis.title = element_text(face = "bold", size = 8)) +geom_hline(yintercept=0) + scale_y_continuous(limits = c(-7, 12), expand = c(0,0)) + scale_x_discrete(labels = SubC$DayWn) + geom_point(data=SubD, aes(x = DayWn, y =Value), size=0.3)  
 }else{
- CompileQPCR[[paste(x, y)]] = ggplot(SubC, aes(x=DayWn, y=Mean))+ facet_wrap(~Gene, nrow = 1)+geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + ylab(expression(Log[2]~Fold~Change)) + xlab("")+ geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean  + sign(Mean) * (stdev + errormargin)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme( strip.text = element_text(size = 8, face = "bold.italic"), axis.text = element_text(size = 8), strip.background = element_blank(), axis.line.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank()) +geom_hline(yintercept=0) + scale_y_continuous(limits = c(-7, 12), expand = c(0,0)) + scale_x_discrete(labels = SubC$DayWn) + geom_point(data=SubD, aes(x = DayWn, y =Value), size=0.3)  
+ CompileQPCR[[paste(x, y)]] = ggplot(SubC, aes(x=DayWn, y=Mean))+ facet_wrap(~Gene, nrow = 1)+geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + ylab(expression(Log[2]~Fold~Change)) + xlab("")+ geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean  + sign(Mean) * (stdev + errormargin)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme( strip.text = element_text( size = 8, face = "bold.italic"), axis.text = element_text(face = "bold", size = 8), strip.background = element_blank(), axis.line.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank()) +geom_hline(yintercept=0) + scale_y_continuous(limits = c(-7, 12), expand = c(0,0)) + scale_x_discrete(labels = SubC$DayWn) + geom_point(data=SubD, aes(x = DayWn, y =Value), size=0.3)  
 }
 }
 CompileQPCR_Main[[x]] = ggarrange(plotlist = CompileQPCR, nrow=1, ncol =7, widths = c(1.5,1,1,1,1,1,1))
@@ -268,17 +261,17 @@ SubsDataForTableWPval = merge(SubsDataForTable, ANOVAResTable, by.x = "Time", by
 
 SubsDataForTableWPval$Sig <- ifelse(SubsDataForTableWPval$pval <0.05,  "*", NA)
 
+GetMin = min(SubsDataForANOVA$Value)*1.1
+GetMax = max(SubsDataForANOVA$Value)*1.1
+if("*" %in% SubsDataForTableWPval$Sig){GetMax = max(SubsDataForANOVA$Value)*1.3}
 
-Constituative[[Proteinz]] = ggplot(SubsDataForTableWPval, aes(x=Time, y=Mean))+geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ ggtitle(Proteinz)  +theme_classic() + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean  + sign(Mean) * (stdev + errormargin)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme(axis.text = element_text(size = 8),  axis.text.y = element_text(size = 8), axis.title.y = element_blank(), plot.title = element_text(face = "bold", size = 10), axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank()) +geom_hline(yintercept=0) + scale_y_continuous(expand = c(0,0))+ geom_point(data=SubsDataForANOVA, aes(x = Time, y =Value), size=0.3) 
+Constituative[[Proteinz]] = ggplot(SubsDataForTableWPval, aes(x=Time, y=Mean))+geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ ggtitle(Proteinz)  +theme_classic() + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean  + sign(Mean) * (stdev*2.2)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme(axis.text = element_text(face = "bold", size = 8),  axis.text.y = element_text(face = "bold", size = 8), axis.title.y = element_blank(), plot.title = element_text(face = "bold", size = 10), axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank()) +geom_hline(yintercept=0) + scale_y_continuous(expand = c(0,0))+ geom_point(data=SubsDataForANOVA, aes(x = Time, y =Value), size=0.3) +scale_y_continuous(limits = c(GetMin, GetMax))
 }
 
-OUT = patchwork::wrap_plots(Constituative, design = "AB
-                                                    CF
-                                                    DG
-                                                    EH")
+OUT = ggarrange(plotlist = Constituative, ncol = 1)
 
 
-pdf(paste(FilePath, "Figure2_B_TemporalSignalling.pdf",sep=""), width = 12, height = 4)
+pdf(paste(FilePath, "Figure2B_TemporalSignalling.pdf",sep=""), width = 7, height = 7)
 print(OUT)
 dev.off()
 
@@ -314,10 +307,10 @@ Reduced_phospho_2h0h_Summ$Inhib1Wn = factor(Reduced_phospho_2h0h_Summ$Inhib1Wn, 
 
 if(p == "pERK"){SigLab = 2.5}else{SigLab = 1}
 
-Inhib2H[[paste("2h", p)]] = ggplot(Reduced_phospho_2h0h_Summ, aes(x=Inhib1Wn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab(expression(Log[2]~fold~change)) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle(p2) + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se+SigLab))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme( plot.title = element_text(size = 12, face = "bold", hjust = 0.5))   + geom_point(data=Reduced_phospho_2h0h_Summ_merge, aes(x = Inhib1Wn, y =Value), size=0.5) + scale_y_continuous(limits = c(min(Reduced_phospho_2h0h_Summ_merge$Value)*1.2, max(Reduced_phospho_2h0h_Summ_merge$Value)*1.1))
+Inhib2H[[paste("2h", p)]] = ggplot(Reduced_phospho_2h0h_Summ, aes(x=Inhib1Wn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab(expression(Log[2]~fold~change)) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle(p2) + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se+SigLab))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme( plot.title = element_text(face = "bold", size = 8, hjust = 0.5), axis.title = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"), axis.text.y = element_text(size = 8))   + geom_point(data=Reduced_phospho_2h0h_Summ_merge, aes(x = Inhib1Wn, y =Value), size=0.5) + scale_y_continuous(limits = c(min(Reduced_phospho_2h0h_Summ_merge$Value)*1.2, max(Reduced_phospho_2h0h_Summ_merge$Value)*1.1))
 
 
-pdf(paste(FilePath, "Figure2D_2HInhib.pdf", sep=""), width = 5, height = 1.7)
+pdf(paste(FilePath, "Figure2D_2HInhib.pdf", sep=""), width = 3.3, height = 2)
 print(Inhib2H)
 dev.off()
 }
@@ -361,16 +354,16 @@ SubsDataForTable_ForPlot = subset(SubsDataForTable, ! SubsDataForTable$Time %in%
 
 SubsDataForTable_ForPlot$Sig <- ifelse(SubsDataForTable_ForPlot$Pval_toPro <0.05,  "*", NA)
 
-CrossTalk = ggplot(SubsDataForTable_ForPlot, aes(x=Combo, y=Mean))+ facet_wrap(~Time + Protein, ncol = 2)+geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ xlab("") + ylab(expression(Log[2]~Fold~Change)) +theme_classic() + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean  + sign(Mean) * (stdev + errormargin)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme( axis.text = element_text(size = 8), strip.background = element_blank(), strip.text = element_blank()) +geom_hline(yintercept=0) + scale_y_continuous(limits = c(min(CrossTalkDataNormToES_ForPlot$Value*1.2), max(CrossTalkDataNormToES_ForPlot$Value*1.1)), expand = c(0,0))  + geom_point(data=CrossTalkDataNormToES_ForPlot, aes(x = Combo, y =Value), size=0.3) 
+CrossTalk = ggplot(SubsDataForTable_ForPlot, aes(x=Combo, y=Mean))+ facet_wrap(~Time + Protein, ncol = 2)+geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ xlab("") + ylab(expression(Log[2]~Fold~Change)) +theme_classic() + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean  + sign(Mean) * (stdev + errormargin)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme( axis.text.x = element_text(face = "bold", size = 8), axis.text.y = element_text(size = 8), strip.background = element_blank(), strip.text = element_blank()) +geom_hline(yintercept=0) + scale_y_continuous(limits = c(min(CrossTalkDataNormToES_ForPlot$Value*1.2), max(CrossTalkDataNormToES_ForPlot$Value*1.1)), expand = c(0,0))  + geom_point(data=CrossTalkDataNormToES_ForPlot, aes(x = Combo, y =Value), size=0.3) 
 
 
-pdf(paste(FilePath, "Figure2D_Crosstalk.pdf", sep=""), width = 10, height = 5)
+pdf(paste(FilePath, "Figure2D_Crosstalk.pdf", sep=""), width = 12, height = 6)
 print(CrossTalk)
 dev.off()
 ```
 
 
-### FIGURE 3: Emergent Property Models (Includes Output for Figure S4)
+### FIGURE 3 + S8: Emergent Property Models
 ```{r}
 ########## 3B: MORPHOLOGY ##########
 Data_To_Plot = c("Morphology_Log") 
@@ -497,19 +490,19 @@ PullBRANNData = subset(BRANN_AvP, BRANN_AvP$Exp %in% GoI_X)
 PullAvP = AllAVP_GoI[, c("Response", "Predicted", "Exp", "ModelType")]
 FourModels = rbind(PullBRANNData, PullAvP)
 
-GEXPanel[[paste(GoI_X, "_ii_Models", sep="")]] = ggplot(FourModels, aes(x=Response, y=Predicted)) + geom_point(aes(color = ModelType)) + xlab("Actual") + theme_classic() + geom_smooth(aes(color = ModelType), method = lm, se = FALSE, fullrange = TRUE) + theme(legend.position="none", legend.title = element_blank(), plot.title = element_text(face="bold")) + scale_color_manual(values = c(BRANN = ColourBRANN,  "Linear" = ColourLinear, "Two Way" = ColourTwoWay))+ ggtitle("Morphology score") 
+GEXPanel[[paste(GoI_X, "_ii_Models", sep="")]] = ggplot(FourModels, aes(x=Response, y=Predicted)) + geom_point(aes(color = ModelType)) + xlab("Actual") + theme_classic() + geom_smooth(aes(color = ModelType), method = lm, se = FALSE, fullrange = TRUE) + theme(legend.position="none", legend.title = element_blank(), plot.title = element_text(face="bold"), axis.title = element_text(size = 8), axis.text = element_text(size = 8)) + scale_color_manual(values = c(BRANN = ColourBRANN,  "Linear" = ColourLinear, "Two Way" = ColourTwoWay))+ ggtitle("Morphology score") 
 
 ########## PANEL III - LINEAR COEFS ##########
 GoI_Linear_Coefs = subset(AllCoefs_GoI, AllCoefs_GoI$ModelType %in% "Linear")
 GoI_Linear_Coefs$term = factor(GoI_Linear_Coefs$term, levels = c("U", "S", "L", "R", "P"))
 
-GEXPanel[[paste(GoI_X, "_iii_LinearCoefs", sep="")]] = ggplot(GoI_Linear_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourLinear, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))
+GEXPanel[[paste(GoI_X, "_iii_LinearCoefs", sep="")]] = ggplot(GoI_Linear_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourLinear, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8)) + theme(axis.title = element_text(size = 8), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"))
 
 ########## PANEL IV - TWO-WAY COEFS ##########
 GoI_TwoWay_Coefs = subset(AllCoefs_GoI, AllCoefs_GoI$ModelType %in% "Two Way")
 GoI_TwoWay_Coefs$term = factor(GoI_TwoWay_Coefs$term, levels = c("U", "S", "L", "R", "P", "U+S", "U+L", "U+R", "U+P", "S+L", "S+R", "S+P", "L+R", "L+P", "R+P"))
 
-GEXPanel[[paste(GoI_X, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourTwoWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))
+GEXPanel[[paste(GoI_X, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourTwoWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme(axis.title = element_text(size = 8), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"))
 }
 
 ########## 3C-E: EMERGENT PROPERTIES ##########
@@ -691,10 +684,9 @@ FourModels = rbind(PullBRANNData, PullAvP)
 
 
 if(GoI == "Prolif"){
-  GEXPanel[[paste(GoI_X, "_ii_Models", sep="")]] = ggplot(FourModels, aes(x=Response, y=Predicted)) + geom_point(aes(color = ModelType)) + xlab("Actual") + theme_classic() + geom_smooth(aes(color = ModelType), method = lm, se = FALSE, fullrange = TRUE) + theme(legend.position="none", legend.title = element_blank(), plot.title = element_text(face="bold")) + scale_color_manual(values = c(BRANN = ColourBRANN, "Five Way" = ColourFiveWay, "Linear" = ColourLinear, "Two Way" = ColourTwoWay)) +scale_y_continuous(label=scientific_10) +scale_x_continuous(label=scientific_10) + ggtitle(PlotTitle) 
-
+  GEXPanel[[paste(GoI_X, "_ii_Models", sep="")]] = ggplot(FourModels, aes(x=Response, y=Predicted)) + geom_point(aes(color = ModelType)) + xlab("Actual") + theme_classic() + geom_smooth(aes(color = ModelType), method = lm, se = FALSE, fullrange = TRUE) + theme(axis.title = element_text(size = 8), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"), legend.position="none", legend.title = element_blank(), plot.title = element_text(face="bold")) + scale_color_manual(values = c(BRANN = ColourBRANN, "Five Way" = ColourFiveWay, "Linear" = ColourLinear, "Two Way" = ColourTwoWay)) +scale_y_continuous(label=scientific_10) +scale_x_continuous(label=scientific_10) + ggtitle(PlotTitle)
 }else{
-GEXPanel[[paste(GoI_X, "_ii_Models", sep="")]] = ggplot(FourModels, aes(x=Response, y=Predicted)) + geom_point(aes(color = ModelType)) + xlab("Actual") + theme_classic() + geom_smooth(aes(color = ModelType), method = lm, se = FALSE, fullrange = TRUE) + theme(legend.position="none", legend.title = element_blank(), plot.title = element_text(face="bold")) + scale_color_manual(values = c(BRANN = ColourBRANN, "Five Way" = ColourFiveWay, "Linear" = ColourLinear, "Two Way" = ColourTwoWay))+ ggtitle(PlotTitle) 
+GEXPanel[[paste(GoI_X, "_ii_Models", sep="")]] = ggplot(FourModels, aes(x=Response, y=Predicted)) + geom_point(aes(color = ModelType)) + xlab("Actual") + theme_classic() + geom_smooth(aes(color = ModelType), method = lm, se = FALSE, fullrange = TRUE) + theme(axis.title = element_text(size = 8), axis.text = element_text(size = 8), legend.position="none", legend.title = element_blank(), plot.title = element_text(face="bold")) + scale_color_manual(values = c(BRANN = ColourBRANN, "Five Way" = ColourFiveWay, "Linear" = ColourLinear, "Two Way" = ColourTwoWay))+ ggtitle(PlotTitle) 
 }
 
 ########## PANEL III - LINEAR COEFS ##########
@@ -703,9 +695,9 @@ GoI_Linear_Coefs$term = factor(GoI_Linear_Coefs$term, levels = c("D2", "D4", "D6
 
 
 if(GoI == "Prolif"){
-GEXPanel[[paste(GoI_X, "_iii_LinearCoefs", sep="")]] = ggplot(GoI_Linear_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourLinear, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3))+scale_y_continuous(label=scientific_10)
+GEXPanel[[paste(GoI_X, "_iii_LinearCoefs", sep="")]] = ggplot(GoI_Linear_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourLinear, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3))+scale_y_continuous(label=scientific_10)+ theme(axis.title = element_text(size = 8), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"))
 }else{
-GEXPanel[[paste(GoI_X, "_iii_LinearCoefs", sep="")]] = ggplot(GoI_Linear_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourLinear, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3))
+GEXPanel[[paste(GoI_X, "_iii_LinearCoefs", sep="")]] = ggplot(GoI_Linear_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourLinear, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3))+ theme(axis.title = element_text(size = 8), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"))
 }
 
 ########## PANEL IV - TWO-WAY COEFS ##########
@@ -713,9 +705,9 @@ GoI_TwoWay_Coefs = subset(AllCoefs_GoI, AllCoefs_GoI$ModelType %in% "Two Way")
 GoI_TwoWay_Coefs$term = factor(GoI_TwoWay_Coefs$term, levels = c("D2", "D4", "D6", "U", "S", "L", "R", "P", "U+S", "U+L", "U+R", "U+P", "S+L", "S+R", "S+P", "L+R", "L+P", "R+P"))
 
 if(GoI == "Prolif"){
-GEXPanel[[paste(GoI_X, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourTwoWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3)) +scale_y_continuous(label=scientific_10)
+GEXPanel[[paste(GoI_X, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourTwoWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3)) +scale_y_continuous(label=scientific_10)+ theme(axis.title = element_text(size = 8), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"))
 }else{
- GEXPanel[[paste(GoI_X, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourTwoWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3))
+ GEXPanel[[paste(GoI_X, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourTwoWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ scale_x_discrete(labels = function(x) str_wrap(x, width = 3))+ theme(axis.title = element_text(size = 8), axis.text.y = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"))
  
 }
 
@@ -724,12 +716,12 @@ GEXPanel[[paste(GoI_X, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, 
 #GoI_FiveWay_Coefs = subset(AllCoefs_GoI, AllCoefs_GoI$ModelType %in% "Five Way")
 #GoI_FiveWay_Coefs$term = factor(GoI_FiveWay_Coefs$term, levels = c("D2", "D4", "D6", "U", "S", "L", "R", "P", "U+S", "U+L", "U+R", "U+P", "S+L", "S+R", "S+P", "L+R", "L+P", "R+P", "U+S+L", "U+S+R", "U+S+P", "U+L+R","U+L+P", "U+R+P", "S+L+R", "S+L+P", "S+R+P", "L+R+P", "U+S+L+R", "U+S+L+P", "U+S+R+P", "U+L+R+P", "S+L+R+P", "U+S+L+R+P"))
 
-#FiveWaySupplemental[[paste(GoI_X, "_FiveWayCoefs", sep="")]] = ggplot(GoI_FiveWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourFiveWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab(Control_Ylab) + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), plot.title = element_text(size = 15, face = "bold")) + ggtitle(PlotTitle)
+#FiveWaySupplemental[[paste(GoI_X, "_FiveWayCoefs", sep="")]] = ggplot(GoI_FiveWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourFiveWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab(Control_Ylab) + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), plot.title = element_text(face = "bold", size = 15)) + ggtitle(PlotTitle)
 }
 
 if( "Prolif_Ntile_8" %in% Data_To_Plot){
 AltModelForSup = ggarrange(plotlist = list(GEXPanel[["Prolif_Ntile_8_ii_Models"]],GEXPanel[["Prolif_Ntile_8_iii_LinearCoefs"]],GEXPanel[["Prolif_Ntile_8_iii_TwoWayCoefs"]]), ncol = 3, nrow=NRows, widths = rep(c(0.85, 0.85, 1.7), NRows))
-pdf(paste(FilePath, "Figure_S4_Prolif.pdf", sep=""), width = 15, height = NRows*4)
+pdf(paste(FilePath, "Figure_S8_Prolif.pdf", sep=""), width = 15, height = NRows*4)
 print(AltModelForSup)
 dev.off()
 GEXPanel[["Prolif_Ntile_8_ii_Models"]]=NULL; GEXPanel[["Prolif_Ntile_8_iii_LinearCoefs"]]=NULL; GEXPanel[["Prolif_Ntile_8_iii_TwoWayCoefs"]]=NULL
@@ -741,7 +733,7 @@ print(Figure3)
 dev.off()
 ```
 
-### FIGURE 4: Gene Expression Models
+### FIGURE 4 + S10: Gene Expression Models
 ```{r}
 Data_To_Plot = c("Rex1", "Oct4", "Dnmt3b", "Fgf5",  "Lefty2", "Otx2", "Mixl1") 
 GEXPanel = list()
@@ -832,19 +824,19 @@ PullBRANNData = subset(BRANN_AvP, BRANN_AvP$Exp %in% GoI)
 PullAvP = AllAVP_GoI[, c("Response", "Predicted", "Exp", "ModelType")]
 FourModels = rbind(PullBRANNData, PullAvP)
 
-GEXPanel[[paste(GoI, "_ii_Models", sep="")]] = ggplot(FourModels, aes(x=Response, y=Predicted)) + geom_point(aes(color = ModelType)) + xlab("Actual") + theme_classic() + geom_smooth(aes(color = ModelType), method = lm, se = FALSE, fullrange = TRUE) + theme(legend.position="none", legend.title = element_blank(), plot.title = element_text(face ="bold.italic")) + scale_color_manual(values = c(BRANN = ColourBRANN,  "Linear" = ColourLinear, "Two Way" = ColourTwoWay) ) + ggtitle(GoI)
+GEXPanel[[paste(GoI, "_ii_Models", sep="")]] = ggplot(FourModels, aes(x=Response, y=Predicted)) + geom_point(aes(color = ModelType)) + xlab("Actual") + theme_classic() + geom_smooth(aes(color = ModelType), method = lm, se = FALSE, fullrange = TRUE) + theme(legend.position="none", legend.title = element_blank(), plot.title = element_text(face ="bold.italic"), axis.title = element_text(size = 8), axis.text = element_text(size = 8)) + scale_color_manual(values = c(BRANN = ColourBRANN,  "Linear" = ColourLinear, "Two Way" = ColourTwoWay) ) + ggtitle(GoI)
 
 ########## PANEL III - LINEAR COEFS ##########
 GoI_Linear_Coefs = subset(AllCoefs_GoI, AllCoefs_GoI$ModelType %in% "Linear")
 GoI_Linear_Coefs$term = factor(GoI_Linear_Coefs$term, levels = c("U", "S", "L", "R", "P"))
 
-GEXPanel[[paste(GoI, "_iii_LinearCoefs", sep="")]] = ggplot(GoI_Linear_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourLinear, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))
+GEXPanel[[paste(GoI, "_iii_LinearCoefs", sep="")]] = ggplot(GoI_Linear_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourLinear, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8)) + theme(axis.title = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"), axis.text.y = element_text(size = 8))
 
 ########## PANEL IV - TWO-WAY COEFS ##########
 GoI_TwoWay_Coefs = subset(AllCoefs_GoI, AllCoefs_GoI$ModelType %in% "Two Way")
 GoI_TwoWay_Coefs$term = factor(GoI_TwoWay_Coefs$term, levels = c("U", "S", "L", "R", "P", "U+S", "U+L", "U+R", "U+P", "S+L", "S+R", "S+P", "L+R", "L+P", "R+P"))
 
-GEXPanel[[paste(GoI, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourTwoWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))
+GEXPanel[[paste(GoI, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, aes(x=term, y=estimate)) + geom_col(fill = ColourTwoWay, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab("Coefficient") + xlab("") + geom_errorbar(aes(ymin = estimate-std.error, ymax = estimate+std.error, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle("") + geom_point( aes(shape = Sig, y = estimate + sign(estimate) * (std.error + (std.error*0.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme(axis.title = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"), axis.text.y = element_text(size = 8))
 }
 
 GEXPanel_AltMain = GEXPanel
@@ -856,12 +848,12 @@ GEXPanel_AltMain[[paste(x, "_iii_TwoWayCoefs", sep="")]] = NULL
 Figure4Main = ggarrange(plotlist = GEXPanel_AltMain, ncol = 4, nrow=4, align = "hv")
 Figure4Supp = ggarrange(plotlist = GEXPanel_AltSupp, ncol = 2, nrow=4,  align = "hv")
 
-pdf(paste(FilePath, "Figure4andS6.pdf", sep= ""), width = 12, height = 4*2.5)
+pdf(paste(FilePath, "Figure4andS10.pdf", sep= ""), width = 12, height = 4*2.5)
 print(list(Figure4Main, Figure4Supp))
 dev.off()
 ```
 
-### FIGURE S2: Raw data bar plots - MORPHOLOGY and GENE EXPRESSION
+### FIGURE S2 + S9: Raw data bar plots - MORPHOLOGY and GENE EXPRESSION
 ```{r}
 SuppControlPCRFigs = list()
 Data_To_Plot = c("Rex1", "Oct4", "Dnmt3b", "Fgf5", "Mixl1", "Lefty2", "Otx2", "Morphology")
@@ -906,7 +898,7 @@ ExclLR = merge(ExclLR, ANOVAResOuts, by = "Combo", all = T)
 ExclLR$Sig = ifelse(ExclLR$pval < 0.05, "*", NA)
 
 
-SuppControlPCRFigs[[e]] = ggplot(ExclLR, aes(x=ComboWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000") + geom_point(aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*3.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) +theme_classic() + geom_hline(yintercept=0) + ylab(Ytitle) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2)+ scale_shape_manual(values=c(8)) + theme(legend.position="none", plot.title = element_text(size = 15, face = TitleStyle), axis.text.x = element_text( angle = 90, vjust = 0.5, hjust=1)) + ggtitle(e)  + geom_point(data=SelectData_ExclLRmerge, aes(x = ComboWn, y =Value), size=0.5)
+SuppControlPCRFigs[[e]] = ggplot(ExclLR, aes(x=ComboWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000") + geom_point(aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*3.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) +theme_classic() + geom_hline(yintercept=0) + ylab(Ytitle) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2)+ scale_shape_manual(values=c(8)) + theme(legend.position="none", plot.title = element_text(size = 15, face = TitleStyle), axis.text.x = element_text( angle = 90, vjust = 0.5, hjust=1, face = "bold")) + ggtitle(e)  + geom_point(data=SelectData_ExclLRmerge, aes(x = ComboWn, y =Value), size=0.5)
 
 }
 
@@ -918,12 +910,12 @@ SuppControlPCRFigs[["Morphology"]] = NULL
 
 NRows = length(SuppControlPCRFigs)
 SuppPCR = ggarrange(plotlist = SuppControlPCRFigs, ncol = 1, nrow=NRows)
-pdf(paste(FilePath, "FigureS5_GeneExpressionRaw.pdf", sep=""), width = 12, height = NRows*2.8)
+pdf(paste(FilePath, "FigureS9_GeneExpressionRaw.pdf", sep=""), width = 12, height = NRows*2.8)
 print(SuppPCR)
 dev.off()
 ```
 
-### FIGURE S3: Raw data bar plots - CELL NUMBER, APOPTOSIS AND PROLIFERATION
+### FIGURE S3-5: Raw data bar plots - CELL NUMBER, APOPTOSIS AND PROLIFERATION
 ```{r}
 ######################################
 AllVariableswZeros = AllVariables
@@ -1011,16 +1003,16 @@ SelectData_Condensed <- SelectData_Condensed[order(SelectData_Condensed$ComboWn)
 
 if(e %in% c("Prolif_2", "Prolif_4", "Prolif_6")){Axis = c(0,100)}else{Axis = c(0, max(SelectData_Samples$Value)*1.2)}
 
-SuppControlEmergFigs[[e]] = ggplot(SelectData_Condensed, aes(x=ComboWn, y=Mean,fill = LRColour)) + geom_bar(stat = "identity", color = "#000000") + scale_fill_manual(values = c("Neutral" =  ColourNeutral, "Blue" = ColourTwoWay))  +theme_classic() + geom_hline(yintercept=0) + ylab(Control_Ylab) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(legend.position="none", plot.title = element_text(size = 15, face = "bold"), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + ggtitle(paste(PlotTitle, DayFactor, sep = "")) + geom_point(data=SelectData_merge, aes(x = ComboWn, y =Value), color = "#000000", fill = "#000000", size = 0.5)+ geom_point(aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*4))), position = position_dodge(width = 0.9), size = 1, show.legend = F)+ scale_shape_manual(values=c(8))  + scale_y_continuous(limits = Axis, expand = c(0,0)) + geom_point(data=SelectData_Samples, aes(x = ComboWn, y =Value, fill = "#000000"), size=0.5)
+SuppControlEmergFigs[[e]] = ggplot(SelectData_Condensed, aes(x=ComboWn, y=Mean,fill = LRColour)) + geom_bar(stat = "identity", color = "#000000") + scale_fill_manual(values = c("Neutral" =  ColourNeutral, "Blue" = ColourTwoWay))  +theme_classic() + geom_hline(yintercept=0) + ylab(Control_Ylab) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(legend.position="none", plot.title = element_text(size = 15, face = "bold"), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, face = "bold")) + ggtitle(paste(PlotTitle, DayFactor, sep = "")) + geom_point(data=SelectData_merge, aes(x = ComboWn, y =Value), color = "#000000", fill = "#000000", size = 0.5)+ geom_point(aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*4))), position = position_dodge(width = 0.9), size = 1, show.legend = F)+ scale_shape_manual(values=c(8))  + scale_y_continuous(limits = Axis, expand = c(0,0)) + geom_point(data=SelectData_Samples, aes(x = ComboWn, y =Value, fill = "#000000"), size=0.5)
 }
 
 SuppEmerg = ggarrange(plotlist = SuppControlEmergFigs, ncol = 1, nrow=3)
-pdf(paste(FilePath, "FigureS2_EmergentPropertiesRaw", sep=""), width = 12, height = 3*2.8)
+pdf(paste(FilePath, "FigureS2S4S5_EmergentPropertiesRaw.pdf", sep=""), width = 12, height = 3*2.8)
 print(SuppEmerg)
 dev.off()
 ```
 
-### FIGURE S4: Correlation Plot
+### FIGURE S6: Correlation Plot
 ```{r}
 SumForCorPlot = AllVariables %>% dplyr::select(FunctionalAssay, CellNoNorm_2, CellNoNorm_4, CellNoNorm_6, Prolif_2, Prolif_4, Prolif_6, Apoptosis_2,  Apoptosis_4, Apoptosis_6, Morphology, Rex1, Oct4, Dnmt3b, Fgf5, Mixl1, Lefty2, Otx2)
 colnames(SumForCorPlot) = gsub("_", " - Day ", gsub("CellNoNorm", "Cell number", gsub("Prolif", "Proliferation", colnames(SumForCorPlot))))
@@ -1028,7 +1020,7 @@ colnames(SumForCorPlot) = gsub("_", " - Day ", gsub("CellNoNorm", "Cell number",
 
 CORR = mycor(SumForCorPlot)
 
-pdf(paste(FilePath, "FigureS3A_Correlation.pdf", sep=""), width = 10, height = 8)
+pdf(paste(FilePath, "FigureS6A_Correlation.pdf", sep=""), width = 10, height = 8)
 print(corrplot(corr=CORR$r, p.mat = CORR$p, method = "circle", diag = F, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, tl.cex = 0.7, insig="label_sig", sig.level =.05, pch.cex = 1, col=colorRampPalette(c(ColourLinear,ColourHeatmapMid, ColourHeatmapHigh))(100)))
 dev.off()
 
@@ -1040,83 +1032,16 @@ colnames(SumForCorPlot) = gsub("_", " - Day ", gsub("FunctionalAssay", "Function
 
 CORR = mycor(SumForCorPlot)
 
-pdf(paste(FilePath, "FigureS3B_FACorrelation.pdf", sep=""), width = 5, height = 4)
+pdf(paste(FilePath, "FigureS6B_FACorrelation.pdf", sep=""), width = 5, height = 4)
 print(corrplot(corr=CORR$r, p.mat = CORR$p, method = "circle", diag = F, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, tl.cex = 0.7, insig="label_sig", sig.level =.05, pch.cex = 1, col=colorRampPalette(c(ColourLinear,ColourHeatmapMid, ColourHeatmapHigh))(100)))
 dev.off()
 
 
 ```
 
-### FIGURE S7: Functional Assay
-```{r}
-FA_list = list()
-Condit = c("1000 U/mL LIF", "330 LIF+Pro+DMSO", "U", "S", "L", "R", "P", "U+S", "U+L", "U+R", "U+P", "S+L", "S+R", "S+P", "L+P", "R+P", "U+S+L", "U+S+R", "U+R+P", "U+S+P","U+L+P", "S+L+P", "S+R+P", "U+S+R+P", "U+S+L+P")
-#CompileForHeatmap = as.data.frame(matrix(ncol = 9, nrow = 0))
-#colnames(CompileForHeatmap) = c("Day", "Condition", "Mean", "stdev", "se", "diff", "lwr.ci", "upr.ci", "pval" )
-
-MaxVal = max(FunctionalAssay$Value) *1.1
-MinVal = min(FunctionalAssay$Value)*1.1
-FunctionalAssay$Exp = NULL
-for(x in Condit){
-FA_ForSTATS = subset(FunctionalAssay, FunctionalAssay$Condition == x)
-
-ControlGroup = as.data.frame(matrix(ncol = 0, nrow = max(as.data.frame(table(FA_ForSTATS$Day))$Freq)))  
-ControlGroup$Condition = "Baseline"
-ControlGroup$Day = "Day 0"
-ControlGroup$Value = 0
 
 
-CombineForDunnetts = rbind(FA_ForSTATS, ControlGroup)    
-CombineForDunnetts$Day = factor(CombineForDunnetts$Day, levels = c("Day 0", "EB2", "EB3", "EB4"))
-
-ANOVARes = as.data.frame(DunnettTest(x=CombineForDunnetts$Value, g=CombineForDunnetts$Day)[[1]])
-row.names(ANOVARes) = gsub("-Day 0", "", row.names(ANOVARes))
-
-CompileForPlot = FA_ForSTATS %>% group_by(Condition, Day) %>% summarise(n = n(), Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
-
-CompileForPlotWStats = merge(CompileForPlot, ANOVARes, by.x = "Day", by.y = 0)
-CompileForPlotWStats$Sig <- ifelse(CompileForPlotWStats$pval <0.05,  "*", NA)
-
-
-CompileForPlotWStats$DayWn = paste(CompileForPlotWStats$Day, "\n n=", CompileForPlotWStats$n, sep="")
-FA_ForSTATSmerge = merge(CompileForPlotWStats, FA_ForSTATS, by = "Day")
-
-CompileForPlotWStats <- CompileForPlotWStats[order(CompileForPlotWStats$Day),] 
-CompileForPlotWStats$DayWn = factor(CompileForPlotWStats$DayWn, levels = CompileForPlotWStats$DayWn)
-
-if(x == "330 LIF+Pro+DMSO"){Title = "330 U/mL LIF \n + Pro + DMSO"}else{Title = x}
-
-FA_list[[x]] = ggplot(CompileForPlotWStats, aes(x=DayWn, y=Mean))  + geom_col(fill = ColourTwoWay, color = "#000000")  +theme_classic() + geom_hline(yintercept=0) + ylab("") + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(axis.text.x = element_text(size = 6), legend.position="none", plot.title = element_text(size = 10, face = "bold")) + scale_y_continuous(limits = c(MinVal, MaxVal)) + ggtitle(Title) + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*3.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8)) + geom_point(data=FA_ForSTATSmerge, aes(x = DayWn, y =Value), size=0.5)
-
-}      
-
-FunctAssayFig = ggarrange(plotlist = FA_list, ncol =5, nrow=5)
-
-pdf(paste(FilePath, "FigureS7_FunctionalAssay.pdf", sep=""), width = 8, height =  9)
-print(FunctAssayFig)
-dev.off()
-```
-
-### BRANN Stats for Table 1
-```{r}
-SW_Res = as.data.frame(matrix(ncol=3, nrow=0))
-colnames(SW_Res) = c("Exp", "SWpval", "Rsq")
-
-for(x in unique(BRANN_AvP$Exp)){
-Subs = subset(BRANN_AvP, BRANN_AvP$Exp == x)  
-BRANN_SW = as.data.frame(x)
-colnames(BRANN_SW) = "Exp"
-BRANN_SW$SWpval =  shapiro.test(Subs$Predicted)[[2]]
-GetLM = lm(Response~Predicted, data = Subs)
-BRANN_SW$Rsq = glance(GetLM)[[1]]
-SW_Res = rbind(SW_Res, BRANN_SW)
-}
-```
-
-
-
-
-##FIGURE SX: PCA
+##FIGURE S7: PCA
 ```{r}
 AllVariables2 = AllVariables
 
@@ -1133,10 +1058,10 @@ row.names(AllVariables_Zscore) = RowNames
 #########
 set.seed(123)
 OutputPCA = list()
-OutputPCA[["silhouette"]] = fviz_nbclust(AllVariables_Zscore, kmeans, method = "silhouette", linecolor = ColourFiveWay, k.max = 6) +labs(title = element_blank()) + theme(axis.title = element_text(size = 8), axis.text = element_text(size = 8))
+OutputPCA[["silhouette"]] = fviz_nbclust(AllVariables_Zscore, kmeans, method = "silhouette", linecolor = ColourFiveWay, k.max = 6) +labs(title = element_blank()) + theme(axis.title = element_text(face = "bold", size = 8), axis.text = element_text(face = "bold", size = 8))
 k2 <- kmeans(AllVariables_Zscore, centers = 2, nstart = 25)
 
-OutputPCA[["Main"]] = fviz_cluster(k2, data = AllVariables_Zscore, labelsize = 6, show.clust.cent	= F) + scale_color_manual(values = c("1" = ColourLinear, "2" = ColourTwoWay)) + scale_fill_manual(values = c("1" = ColourLinear, "2" = ColourTwoWay)) +theme(legend.position = "none", plot.title = element_blank(), axis.text = element_text(size = 8), axis.title = element_text(size = 8)) #, ggtheme = theme_bw()
+OutputPCA[["Main"]] = fviz_cluster(k2, data = AllVariables_Zscore, labelsize = 6, show.clust.cent	= F) + scale_color_manual(values = c("1" = ColourLinear, "2" = ColourTwoWay)) + scale_fill_manual(values = c("1" = ColourLinear, "2" = ColourTwoWay)) +theme(legend.position = "none", plot.title = element_blank(), axis.text = element_text(face = "bold", size = 8), axis.title = element_text(face = "bold", size = 8)) #, ggtheme = theme_bw()
 
 kmean_cluster = as.data.frame(k2$cluster)
 AllVariables3 = as.data.frame(AllVariables3)
@@ -1179,7 +1104,7 @@ DeltaData2 = subset(DeltaData, DeltaData$Cluster == 1)
 DeltaData2 = DeltaData2[order(DeltaData2$InhibPercent), ]
 DeltaData$Inhib = factor(DeltaData$Inhib, levels = DeltaData2$Inhib)
 OutputPCA[["Freq"]]  = ggplot(DeltaData, aes(fill=Cluster, y=InhibPercent, x=Inhib)) + 
-    geom_bar(position="stack", stat="identity")+coord_flip() + scale_fill_manual(values = c("1" = ColourLinear, "2" = ColourTwoWay))+theme_classic() + scale_y_continuous(expand = c(0,0)) + theme(strip.background = element_blank(), strip.text = element_text(size = 8, face = "bold", hjust = 0),axis.text = element_text(size = 8), legend.position="top") + ylab("Normalised percent/cluster") + xlab("") 
+    geom_bar(position="stack", stat="identity")+coord_flip() + scale_fill_manual(values = c("1" = ColourLinear, "2" = ColourTwoWay))+theme_classic() + scale_y_continuous(expand = c(0,0)) + theme(axis.text = element_text(face = "bold", size = 8), legend.position="top") + ylab("Normalised percent/cluster") + xlab("") 
 
 PCA_Main = ggarrange(plotlist = OutputPCA, ncol = 3, nrow = 1, widths = c(0.8, 1, 0.8))
 
@@ -1226,133 +1151,134 @@ dev.off()
 
 ```
 
-# -- OLD --
-#################################
-### FIGURE 2: Cell Signalling Heatmaps
+
+### FIGURE S11: Functional Assay
 ```{r}
-########## 2C: CONSTITUATIVE SIGNALLING ##########
-Figure2Plots = list()
+FA_list = list()
+Condit = c("1000 U/mL LIF", "330 LIF+Pro+DMSO", "U", "S", "L", "R", "P", "U+S", "U+L", "U+R", "U+P", "S+L", "S+R", "S+P", "L+P", "R+P", "U+S+L", "U+S+R", "U+R+P", "U+S+P","U+L+P", "S+L+P", "S+R+P", "U+S+R+P", "U+S+L+P")
+FirstUpreg = as.data.frame(matrix(ncol = 2, nrow = 0))
+colnames(FirstUpreg) = c("Condition", "UpregDay")
 
-ConstSig2 = ConstSig
+MaxVal = max(FunctionalAssay$Value) *1.1
+MinVal = min(FunctionalAssay$Value)*1.1
+FunctionalAssay$Exp = NULL
+for(x in Condit){
+FA_ForSTATS = subset(FunctionalAssay, FunctionalAssay$Condition == x)
 
-ConstSig2$Value = log2(ConstSig2$Value) 
-ConstSig2$Time = factor(ConstSig2$Time, levels = c("0 h", "0.16 h", "0.5 h", "1 h", "2 h", "6 h", "12 h", "24 h", "48 h", "96 h", "144 h" ))
-ConstSig2$Protein = factor(ConstSig2$Protein, levels = c("p-Stat3@Y705", "p-Stat3@S727", "p-Fgfr", "p-Erk1/2", "p-Akt", "p-S6k", "p-Rps6",     "p-4epb1"))
+ControlGroup = as.data.frame(matrix(ncol = 0, nrow = max(as.data.frame(table(FA_ForSTATS$Day))$Freq)))  
+ControlGroup$Condition = "Baseline"
+ControlGroup$Day = "Day 0"
+ControlGroup$Value = 0
 
-ConstSig_Recompile = as.data.frame(matrix(ncol=9, nrow=0))
-colnames(ConstSig_Recompile) = c("Time", "Protein", "Mean", "stdev",  "se", "diff", "lwr.ci", "upr.ci", "pval")
- 
 
-for(Proteinz in c("p-4epb1", "p-Rps6", "p-S6k", "p-Akt", "p-Erk1/2", "p-Fgfr", "p-Stat3@S727", "p-Stat3@Y705")){
-SubsDataForANOVA = subset(ConstSig2, ConstSig2$Protein %in% Proteinz)
-SubsDataForTable = SubsDataForANOVA %>% group_by(Time, Protein) %>% dplyr::summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
+CombineForDunnetts = rbind(FA_ForSTATS, ControlGroup)    
+CombineForDunnetts$Day = factor(CombineForDunnetts$Day, levels = c("Day 0", "EB2", "EB3", "EB4"))
 
-ANOVAResTable = as.data.frame(DunnettTest(x=SubsDataForANOVA$Value, g=SubsDataForANOVA$Time)[[1]])
-row.names(ANOVAResTable) = gsub("-0 h", "", row.names(ANOVAResTable))
+ANOVARes = as.data.frame(DunnettTest(x=CombineForDunnetts$Value, g=CombineForDunnetts$Day)[[1]])
+row.names(ANOVARes) = gsub("-Day 0", "", row.names(ANOVARes))
 
-SubsDataForTableWPval = merge(SubsDataForTable, ANOVAResTable, by.x = "Time", by.y = 0, all = T)
-ConstSig_Recompile = rbind(ConstSig_Recompile, SubsDataForTableWPval)
+CompileForPlot = FA_ForSTATS %>% group_by(Condition, Day) %>% summarise(n = n(), Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
+
+CompileForPlotWStats = merge(CompileForPlot, ANOVARes, by.x = "Day", by.y = 0)
+CompileForPlotWStats$Sig <- ifelse(CompileForPlotWStats$pval <0.05,  "*", NA)
+
+
+CompileForPlotWStats$DayWn = paste(CompileForPlotWStats$Day, "\n n=", CompileForPlotWStats$n, sep="")
+FA_ForSTATSmerge = merge(CompileForPlotWStats, FA_ForSTATS, by = "Day")
+
+CompileForPlotWStats <- CompileForPlotWStats[order(CompileForPlotWStats$Day),] 
+CompileForPlotWStats$DayWn = factor(CompileForPlotWStats$DayWn, levels = CompileForPlotWStats$DayWn)
+
+
+FirstUpregDay = subset(CompileForPlotWStats, CompileForPlotWStats$Sig == "*")
+if("EB2" %in% FirstUpregDay$Day){FirstUpregTemp = as.data.frame(t(c(x, "EB2")))
+}else if("EB3" %in% FirstUpregDay$Day){FirstUpregTemp = as.data.frame(t(c(x, "EB3")))
+}else if("EB4" %in% FirstUpregDay$Day){FirstUpregTemp = as.data.frame(t(c(x, "EB4")))
+}else{FirstUpregTemp = as.data.frame(t(c(x, "NA")))}
+colnames(FirstUpregTemp) = c("Condition", "UpregDay")
+FirstUpreg = rbind(FirstUpreg, FirstUpregTemp)
+
+
+if(x == "330 LIF+Pro+DMSO"){Title = "330 U/mL LIF \n+ L-pro + DMSO"}else{Title = x}
+
+FA_list[[x]] = ggplot(CompileForPlotWStats, aes(x=DayWn, y=Mean))  + geom_col(fill = ColourTwoWay, color = "#000000")  +theme_classic() + geom_hline(yintercept=0) + ylab("") + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + theme(axis.text.x = element_text(face = "bold", size = 8), axis.text.y = element_text( size = 8), legend.position="none", plot.title = element_text(face = "bold", size = 8)) + scale_y_continuous(limits = c(MinVal, MaxVal)) + ggtitle(Title) + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*3.5))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8)) + geom_point(data=FA_ForSTATSmerge, aes(x = DayWn, y =Value), size=0.5)
+
+}      
+
+FunctAssayFig = ggarrange(plotlist = FA_list, ncol =5, nrow=5)
+
+pdf(paste(FilePath, "FigureS7_FunctionalAssay.pdf", sep=""), width = 8, height =  9)
+print(FunctAssayFig)
+dev.off()
+
+
+
+####
+
+
+FirstUpreg$U = ifelse(grepl("U", FirstUpreg$Condition, fixed = T) & ! FirstUpreg$Condition %in% c("1000 U/mL LIF", "330 LIF+Pro+DMSO") , 1, 0)
+FirstUpreg$S = ifelse(grepl("S", FirstUpreg$Condition, fixed = T) & ! FirstUpreg$Condition %in% c("1000 U/mL LIF", "330 LIF+Pro+DMSO"), 1, 0)
+FirstUpreg$L = ifelse(grepl("L", FirstUpreg$Condition, fixed = T) & ! FirstUpreg$Condition %in% c("1000 U/mL LIF", "330 LIF+Pro+DMSO"), 1, 0)
+FirstUpreg$R = ifelse(grepl("R", FirstUpreg$Condition, fixed = T) & ! FirstUpreg$Condition %in% c("1000 U/mL LIF", "330 LIF+Pro+DMSO"), 1, 0)
+FirstUpreg$P = ifelse(grepl("P", FirstUpreg$Condition, fixed = T) & ! FirstUpreg$Condition %in% c("1000 U/mL LIF", "330 LIF+Pro+DMSO"), 1, 0)
+
+AllPercent = as.data.frame(table(FirstUpreg$UpregDay))
+AllPercent$Percent = AllPercent$Freq/dim(FirstUpreg)[1]*100
+AllPercent$Freq = NULL
+colnames(AllPercent) = c("Cluster", "AllPercent")
+AllPercent[is.na(AllPercent)] = "NA"
+
+AllPercent$Cluster = factor(AllPercent$Cluster, levels = c("EB2", "EB3", "EB4", "NA"))
+FA2 = list()
+FA2[["Freq"]]  = ggplot(AllPercent, aes(y=AllPercent, x=Cluster)) +  geom_col(fill = ColourLinear, color = "#000000")+theme_classic() + theme(axis.text.x = element_text(face = "bold", size = 8), axis.text.y = element_text(size = 8), axis.title = element_text(size = 8))+ ylab("Frequency of upregualtion (%)") + xlab("") 
+
+
+for(y in rev(c("U", "S", "L", "R", "P"))){
+PullData = subset(FirstUpreg, FirstUpreg[[y]] == 1) 
+InhibPercent = as.data.frame(table(PullData$UpregDay))
+InhibPercent$Percent = InhibPercent$Freq/dim(PullData)[1]*100
+InhibPercent$Freq = NULL
+colnames(InhibPercent) = c("Cluster", "InhibPercent")
+CompilePercents = merge(AllPercent, InhibPercent, by = "Cluster", all=T)
+CompilePercents$Inhib = y
+CompilePercents[is.na(CompilePercents)] = 0
+CompilePercents$Delta = CompilePercents$InhibPercent -CompilePercents$AllPercent
+if(y == "P"){
+DeltaData =  CompilePercents
+}else{
+DeltaData = rbind(DeltaData, CompilePercents)  
+}
 }
 
-ConstSig_Recompile$Sig <- ifelse(ConstSig_Recompile$pval <0.05,  "*", NA)
-
-ConstSig_Recompile$Protein = factor(ConstSig_Recompile$Protein, levels = c("p-4epb1", "p-Rps6", "p-S6k", "p-Akt", "p-Erk1/2", "p-Fgfr", "p-Stat3@S727", "p-Stat3@Y705"))
-
-Figure1Plots[["ConstSig"]] =  ggplot(ConstSig_Recompile, aes(x=Time, y=Protein, fill = Mean) )+ geom_tile(color = "grey") + coord_fixed() + scale_fill_gradient2(low = ColourHeatmapLow, mid = ColourHeatmapMid, high = ColourHeatmapHigh)+theme_classic() + theme(axis.ticks = element_blank(), axis.line = element_blank(), legend.title = element_blank(), plot.margin = margin(30,30,20,30, "pt")) + xlab("")+ geom_text(aes(label=Sig)) + ylab("") 
+DeltaData$Inhib = factor(DeltaData$Inhib, levels = c("U", "S", "L", "R", "P"))
+FA2[["Delta"]]  = ggplot(DeltaData, aes(y=Delta, x=Cluster)) + facet_wrap(~Inhib, ncol = 5)+  geom_col(fill = ColourFiveWay, color = "#000000")+theme_classic() + theme(axis.text.x = element_text(face = "bold", size = 8), axis.text.y = element_text(size = 8), strip.background = element_blank(), strip.text = element_blank(), axis.title = element_text(size = 8))+ ylab(expression(Delta)) + xlab("") 
 
 
-########## 2E: 2H INHIB SUPRESSION ##########
-for(p in c("pERK", "pRPS6")){
-if(p == "pERK"){p2 = "p-Erk1/2"}else{p2 = "p-Rps6"}
-Reduced_phospho_2h0h = subset(CrossTalkDataNormToES, CrossTalkDataNormToES$Protein %in% p & CrossTalkDataNormToES$Time %in% c("2", "0"))
-Reduced_phospho_2h0h$CondTime = paste(Reduced_phospho_2h0h$Inhib1, Reduced_phospho_2h0h$Time, sep="_")
-Reduced_phospho_2h0h$CondTime = factor(Reduced_phospho_2h0h$CondTime, levels = c("NA_0", "NA_2", "U_2","S_2", "L_2", "R_2", "P_2"))
-Reduced_phospho_2h0h$Value = log2(Reduced_phospho_2h0h$Value) ##### ADD LOG
+FunctAssayFig2 = ggarrange(plotlist = FA2, ncol =2, nrow=1, widths = c(1,4))
+FunctAssayFigCompile = ggarrange(FunctAssayFig, FunctAssayFig2, ncol =1, nrow=2, heights = c(5,1))
 
-
-Reduced_phospho_2h0h_Summ = Reduced_phospho_2h0h %>% group_by(Protein, Inhib1, Inhib2, Inhib_Dash, Time, CondTime) %>% dplyr::summarise(n = n(), Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
-
-Reduced_phospho_2h0h[c("Inhib1")][is.na(Reduced_phospho_2h0h[c("Inhib1")])] <- "-"
-
-
-ANOVARes = as.data.frame(DunnettTest(x=Reduced_phospho_2h0h$Value, g=Reduced_phospho_2h0h$CondTime)[1])
-row.names(ANOVARes) = gsub("-NA_0", "", row.names(ANOVARes))
-
-Reduced_phospho_2h0h_Summ = merge(Reduced_phospho_2h0h_Summ, ANOVARes, by.x = "CondTime", by.y = 0)
-Reduced_phospho_2h0h_Summ$Inhib1[is.na(Reduced_phospho_2h0h_Summ$Inhib1)] <- "-"
-Reduced_phospho_2h0h_Summ$Sig <- ifelse(Reduced_phospho_2h0h_Summ$NA_0.pval <0.05,  "*", NA)
-Reduced_phospho_2h0h_Summ$Inhib1 = factor(Reduced_phospho_2h0h_Summ$Inhib1, levels = c("-", "U", "S", "L", "R", "P"))
-
-Reduced_phospho_2h0h_Summ$Inhib1Wn = paste(Reduced_phospho_2h0h_Summ$Inhib1, "\n n=", Reduced_phospho_2h0h_Summ$n,  sep="")
-Reduced_phospho_2h0h_Summ_merge = merge(Reduced_phospho_2h0h_Summ, Reduced_phospho_2h0h, by = "Inhib1")
-Reduced_phospho_2h0h_Summ <- Reduced_phospho_2h0h_Summ[order(Reduced_phospho_2h0h_Summ$Inhib1),] 
-Reduced_phospho_2h0h_Summ$Inhib1Wn = factor(Reduced_phospho_2h0h_Summ$Inhib1Wn, levels = Reduced_phospho_2h0h_Summ$Inhib1Wn)
-
-if(p == "pERK"){SigLab = 2.5}else{SigLab = 1}
-
-Figure1Plots[[paste("2h", p)]] = ggplot(Reduced_phospho_2h0h_Summ, aes(x=Inhib1Wn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab(expression(Log[2]~fold~change)) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle(p2) + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se+SigLab))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme( plot.title = element_text(size = 12, face = "bold", hjust = 0.5))   + geom_point(data=Reduced_phospho_2h0h_Summ_merge, aes(x = Inhib1Wn, y =Value), size=0.5) + scale_y_continuous(limits = c(min(Reduced_phospho_2h0h_Summ_merge$Value)*1.2, max(Reduced_phospho_2h0h_Summ_merge$Value)*1.1))
-}
-
-
-########## 2F: CROSS TALK ##########
-CrossTalkDataNormToES$Combo = paste(CrossTalkDataNormToES$Inhib1, CrossTalkDataNormToES$Inhib_Dash, sep=" ")
-CrossTalkDataNormToES$Combo = gsub("NA", "-", CrossTalkDataNormToES$Combo)
-CrossTalkDataNormToES$Combo = factor(CrossTalkDataNormToES$Combo, levels = c("- -", "U -", "U U", "S -", "S S", "L -", "L L", "R -", "R R", "P -", "P P", "U S", "U L", "U R", "U P", "R U", "R S", "R L", "R P"))
-
-CrossTalk_Recompile = as.data.frame(matrix(ncol=11, nrow=0))
-colnames(CrossTalk_Recompile) = c("Protein", "Inhib1", "Inhib2", "Inhib_Dash", "Time", "Combo", "Mean", "stdev", "se", "Pval_toPro", "Pval_toES")
-
-for(Proteinz in c("pERK_Log", "pRPS6_Log")){
-GoI = gsub("_.*", "", Proteinz)
-CrossTalkInput = subset(CrossTalkDataNormToES, CrossTalkDataNormToES$Protein %in% GoI)
-if(grepl("Log", Proteinz, fixed = TRUE) == T){
-CrossTalkInput$Value = log2(CrossTalkInput$Value+0.01) 
-}  
-
-for(Timez in c(4,6,8,10)){
-for(Dataz in c("U -", "U U", "S -", "S S", "L -", "L L", "R -", "R R", "P -", "P P", "U S", "U L", "U R", "U P", "R U", "R S", "R L", "R P")){
-SubsDataForANOVA = subset(CrossTalkInput, CrossTalkInput$Combo %in% c(Dataz, "- -") & CrossTalkInput$Time %in% Timez)
-
-SubsDataForTable_All = subset(CrossTalkInput, CrossTalkInput$Combo %in% c(Dataz) & CrossTalkInput$Time %in% Timez & CrossTalkInput$Protein %in% GoI)
-
-SubsDataForTable = SubsDataForTable_All %>% group_by(Protein, Inhib1, Inhib2, Inhib_Dash, Time, Combo) %>% dplyr::summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
-
-ANOVARes = DunnettTest(x=SubsDataForANOVA$Value, g=SubsDataForANOVA$Combo)
-ANOVARes2 = DunnettTest(x=c(SubsDataForTable_All$Value, rep(1, dim(SubsDataForTable_All)[1])), g=factor(c(SubsDataForTable_All$Combo, rep("Control", dim(SubsDataForTable_All)[1]))))
-
-
-SubsDataForTable$Pval_toPro = ANOVARes[[1]][4]
-SubsDataForTable$Pval_toES = ANOVARes2[[1]][4]
-
-CrossTalk_Recompile = rbind(CrossTalk_Recompile, SubsDataForTable)
-}}}
-
-
-BottomPanels = list()
-for(p in c("pERK", "pRPS6")){
-if(p == "pERK"){p2 = "p-Erk1/2"}else{p2 = "p-Rps6"}
-pERK_Controls = subset(CrossTalkDataNormToES, CrossTalkDataNormToES$Combo %in% "- -" & CrossTalkDataNormToES$Time %notin% c("0","2") & CrossTalkDataNormToES$Protein %in% p)
-pERK_Controls_Sum = pERK_Controls %>% group_by(Protein, Inhib1, Inhib2, Inhib_Dash, Time, Combo) %>% dplyr::summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
-pERK_Controls_Sum$Pval_toPro = NA
-pERK_Controls_Sum$Pval_toES = NA
-
-
-Reduced_pERK = subset(CrossTalk_Recompile, CrossTalk_Recompile$Protein %in% p & CrossTalk_Recompile$Time %notin% c("2", "0"))
-Reduced_pERK = rbind(Reduced_pERK, pERK_Controls_Sum)
-Reduced_pERK$Time = paste(Reduced_pERK$Time, "h")
-Reduced_pERK$Time = factor(Reduced_pERK$Time, levels = c("10 h","8 h", "6 h", "4 h"))
-Reduced_pERK$Combo = paste(Reduced_pERK$Inhib1, Reduced_pERK$Inhib_Dash, sep=" ")
-Reduced_pERK$Combo = gsub("NA", "-", Reduced_pERK$Combo)
-Reduced_pERK$Combo = factor(Reduced_pERK$Combo, levels = c("- -", "U -", "U U", "S -", "S S", "L -", "L L", "R -", "R R", "P -", "P P", "U S", "U L", "U R", "U P", "R U", "R S", "R L", "R P"))
-levels(Reduced_pERK$Combo) <- gsub(" ", "\n", levels(Reduced_pERK$Combo))
-Reduced_pERK$Sig <- ifelse(Reduced_pERK$Pval_toPro <0.05,  "*", NA)
-BottomPanels[[paste("Cross Talk", p)]] = ggplot(Reduced_pERK, aes(x=Combo, y=Time, fill = Mean) )+ geom_tile(color = "grey") + coord_fixed()+ scale_x_discrete(labels = function(x) str_wrap(x, width = 1)) + scale_fill_gradient2(low = ColourHeatmapLow, mid = ColourHeatmapMid, high = ColourHeatmapHigh)+theme_classic() + theme(axis.ticks = element_blank(), axis.line = element_blank(), legend.title = element_blank(),  plot.title = element_text(size = 12, face = "bold", hjust = 0.5)) + xlab("") + geom_text(aes(label=Sig))+ ylab("") + ggtitle(p2)
-}
-Figure2Plots[["CrossTalk"]] = ggarrange(BottomPanels[[paste("Cross Talk", "pERK")]], BottomPanels[[paste("Cross Talk", "pRPS6")]])
-
-
-pdf(paste(FilePath, "Figure2_Crosstalk.pdf", sep="") width = 15, height = 8)
-print(Figure2Plots[["CrossTalk"]])
+pdf(paste(FilePath, "FigureS11_FunctionalAssay.pdf", sep=""), width = 8, height =  11)
+print(FunctAssayFigCompile)
 dev.off()
 ```
+
+### BRANN Stats for Table 1
+```{r}
+SW_Res = as.data.frame(matrix(ncol=3, nrow=0))
+colnames(SW_Res) = c("Exp", "SWpval", "Rsq")
+
+for(x in unique(BRANN_AvP$Exp)){
+Subs = subset(BRANN_AvP, BRANN_AvP$Exp == x)  
+BRANN_SW = as.data.frame(x)
+colnames(BRANN_SW) = "Exp"
+BRANN_SW$SWpval =  shapiro.test(Subs$Predicted)[[2]]
+GetLM = lm(Response~Predicted, data = Subs)
+BRANN_SW$Rsq = glance(GetLM)[[1]]
+SW_Res = rbind(SW_Res, BRANN_SW)
+}
+```
+
+
+
+
 
