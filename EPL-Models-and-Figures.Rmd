@@ -20,7 +20,7 @@ FilePath = "~/Dropbox/PhD/MAR20 WIP - Stat Modelling/Final Output/"
 calc_loocv_rmse = function(model) { sqrt(mean((resid(model) / (1 - hatvalues(model))) ^
 2)) }
 
-#Data for constitutive signalling (Fig 1)
+#Data for temporal signalling (Fig 1)
 ConstSig = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/Constituitive Signalling.csv")
 ConstSig$Protein = gsub("pFgfr", "p-Fgfr", ConstSig$Protein)
 
@@ -246,9 +246,7 @@ ConstSig2$Value = log2(ConstSig2$Value)
 ConstSig2$Time = factor(ConstSig2$Time, levels = c("0 h", "0.16 h", "0.5 h", "1 h", "2 h", "6 h", "12 h", "24 h", "48 h", "96 h", "144 h" ))
 ConstSig2$Protein = factor(ConstSig2$Protein, levels = c("p-Stat3@Y705", "p-Stat3@S727", "p-Fgfr", "p-Erk1/2", "p-Akt", "p-S6k", "p-Rps6",     "p-4epb1"))
 
-#ConstSig_Recompile = as.data.frame(matrix(ncol=9, nrow=0))
-#colnames(ConstSig_Recompile) = c("Time", "Protein", "Mean", "stdev",  "se", "diff", "lwr.ci", "upr.ci", "pval")
- 
+
 Constituative = list()
 for(Proteinz in rev(c("p-4epb1", "p-Rps6", "p-S6k", "p-Akt", "p-Erk1/2", "p-Fgfr", "p-Stat3@S727", "p-Stat3@Y705"))){
 SubsDataForANOVA = subset(ConstSig2, ConstSig2$Protein %in% Proteinz)
@@ -271,7 +269,7 @@ Constituative[[Proteinz]] = ggplot(SubsDataForTableWPval, aes(x=Time, y=Mean))+g
 OUT = ggarrange(plotlist = Constituative, ncol = 1)
 
 
-pdf(paste(FilePath, "Figure2B_TemporalSignalling.pdf",sep=""), width = 7, height = 7)
+pdf(paste(FilePath, "Figure2B_TemporalSignalling.pdf",sep=""), width = 4.5, height = 7)
 print(OUT)
 dev.off()
 
@@ -310,7 +308,7 @@ if(p == "pERK"){SigLab = 2.5}else{SigLab = 1}
 Inhib2H[[paste("2h", p)]] = ggplot(Reduced_phospho_2h0h_Summ, aes(x=Inhib1Wn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)  +theme_classic() + geom_hline(yintercept=0)+ ylab(expression(Log[2]~fold~change)) + xlab("") + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se, ), position = position_dodge(width = 0.9), width = 0.2) + ggtitle(p2) + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se+SigLab))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + scale_shape_manual(values=c(8))+ theme( plot.title = element_text(face = "bold", size = 8, hjust = 0.5), axis.title = element_text(size = 8), axis.text.x = element_text(size = 8, face = "bold"), axis.text.y = element_text(size = 8))   + geom_point(data=Reduced_phospho_2h0h_Summ_merge, aes(x = Inhib1Wn, y =Value), size=0.5) + scale_y_continuous(limits = c(min(Reduced_phospho_2h0h_Summ_merge$Value)*1.2, max(Reduced_phospho_2h0h_Summ_merge$Value)*1.1))
 
 
-pdf(paste(FilePath, "Figure2D_2HInhib.pdf", sep=""), width = 3.3, height = 2)
+pdf(paste(FilePath, "Figure2D_2HInhib.pdf", sep=""), width = 2, height = 2)
 print(Inhib2H)
 dev.off()
 }
