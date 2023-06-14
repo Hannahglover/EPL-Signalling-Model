@@ -3,56 +3,59 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+#SETUP + LOAD DATA
 ```{r}
-library(broom)
-library(tidyverse)
-library(car)
-library(ggpubr)
-library(lmtest)
-library(DescTools)
-library(patchwork)
-library(corrplot)
-library(mycor)
-library(factoextra)
+library(broom) #v1.0.5
+library(tidyverse) #v2.0.0
+library(car) #v3.1-2
+library(ggpubr) #v0.6.0
+library(lmtest) #v0.9-40
+library(DescTools) #v0.99.49
+library(patchwork) #v1.1.2
+library(corrplot) #v0.92
+library(mycor) #v0.1.1
+library(factoextra) #v1.0.7
 
-FilePath = "~/Dropbox/PhD/MAR20 WIP - Stat Modelling/Final Output/"
+FilePath = "~/Final Output/"
+dir.create(FilePath)
 `%notin%` = Negate(`%in%`)
 calc_loocv_rmse = function(model) { sqrt(mean((resid(model) / (1 - hatvalues(model))) ^
 2)) }
 
-#Data for temporal signalling (Fig 1)
-ConstSig = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/Constituitive Signalling.csv")
-ConstSig$Protein = gsub("pFgfr", "p-Fgfr", ConstSig$Protein)
 
-#Data for signalling pathway cross talk (Fig 1)
-CrossTalkDataNormToES = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/CrossTalkData_NormToES_Long.csv")
+#Control data for emergent properties (Fig 1)
+Fig1_EmergPropControls = read.csv("~/InputData/Fig1_EmergPropControls.csv")
+Fig1_EmergPropControls$Exp = gsub("Cell Growth", "CellNoNorm",  Fig1_EmergPropControls$Exp)
 
-#Control data for Morphology (Fig 2)
-Morph_Controls = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/Morph_Controls.csv")
+#Control data for Morphology (Fig 1)
+Fig1_MorphControls = read.csv("~/InputData/Fig1_MorphControls.csv")
 
-#Data for models (Figs 2, 3, 4, S3, S4, S5, S7, S8, S9, S10)
-AllVariables = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/StatModelPaper_AllData.csv")
-AllVariables$Combo = paste(ifelse(AllVariables$U == 1,  "U", ""), ifelse(AllVariables$S == 1,  "S", ""),ifelse(AllVariables$L == 1,  "L", ""),ifelse(AllVariables$R == 1,  "R", ""),ifelse(AllVariables$P == 1,  "P", ""), sep="")
-AllVariables$Combo = sapply(strsplit(AllVariables$Combo, ""), paste, collapse="+")
-AllVariables$Combo <- sub("^$", "DMSO", AllVariables$Combo)
-colnames(AllVariables)[1] = "Name"
-colnames(AllVariables) = gsub("\\.", "", colnames(AllVariables))
+#Control data for qPCR (Fig 1)
+Fig1_qPCR = read.csv("~/InputData/Fig1_qPCR.csv")
+Fig1_qPCR = na.omit(Fig1_qPCR)
 
-#BRANN model outputs computed by Dave Winkler  (Figs 2, 3, 4, S3, S4, S5, S7, S8, S9, S10)
-BRANN_AvP = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/All_BRANN_Results_FEB22.csv")
+#Data for temporal signalling (Fig 2)
+Fig2_StdSignalling = read.csv("~/InputData/Fig2_StdSignalling.csv")
+Fig2_StdSignalling$Protein = gsub("pFgfr", "p-Fgfr", Fig2_StdSignalling$Protein)
 
-#Control data for emergent properties (Figs 3, S4)
-EPLControlData = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/EPL Control Data - All Assays.csv")
-EPLControlData$Exp = gsub("Cell Growth", "CellNoNorm",  EPLControlData$Exp)
+#Data for signalling pathway cross talk (Fig 2)
+Fig2_CrossTalk = read.csv("~/InputData/Fig2_CrossTalk.csv")
 
-#Control data for qPCR (Figs 4, S5)
-EPLControlData_PCR = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/EPL and Cont PCR - All Days.csv")
-EPLControlData_PCR = na.omit(EPLControlData_PCR)
+#Data for models (Figs 3, 4, S2-10)
+Fig3_4_ComboInhibData = read.csv("~/InputData/Fig3_4_ComboInhibData.csv")
+Fig3_4_ComboInhibData$Combo = paste(ifelse(Fig3_4_ComboInhibData$U == 1,  "U", ""), ifelse(Fig3_4_ComboInhibData$S == 1,  "S", ""),ifelse(Fig3_4_ComboInhibData$L == 1,  "L", ""),ifelse(Fig3_4_ComboInhibData$R == 1,  "R", ""),ifelse(Fig3_4_ComboInhibData$P == 1,  "P", ""), sep="")
+Fig3_4_ComboInhibData$Combo = sapply(strsplit(Fig3_4_ComboInhibData$Combo, ""), paste, collapse="+")
+Fig3_4_ComboInhibData$Combo <- sub("^$", "DMSO", Fig3_4_ComboInhibData$Combo)
+colnames(Fig3_4_ComboInhibData)[1] = "Name"
+colnames(Fig3_4_ComboInhibData) = gsub("\\.", "", colnames(Fig3_4_ComboInhibData))
 
-#Data for functional assay (Fig S6)
-FunctionalAssay = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/FunctionalAssay_Data.csv")
-FunctionalAssay$X = NULL
-FunctionalAssay = na.omit(FunctionalAssay)
+#BRANN model outputs computed by Dave Winkler  (Figs 3, 4, S8)
+Fig3_4_BRANNResults = read.csv("~/InputData/Fig3_4_BRANNResults.csv")
+
+#Data for functional assay (Fig S6, S11)
+FigS11_FunctionalAssay = read.csv("~/InputData/FigS11_FunctionalAssay.csv")
+FigS11_FunctionalAssay$X = NULL
+FigS11_FunctionalAssay = na.omit(FigS11_FunctionalAssay)
 
 
 #Colours for plots
@@ -69,24 +72,24 @@ ColourNeutral = "#e5e6e3" #Light Grey
 ### FIGURE 1: Control Data
 ```{r}
 ########## 1B: MORPHOLOGY ##########
-Morph_Controls$Condition = factor(Morph_Controls$Condition, levels = c("1000 U/mL LIF", "330 U/mL LIF", "330 U/mL LIF + Pro", "0 U/mL LIF"))
-ANOVAResTable = as.data.frame(DunnettTest(x=Morph_Controls$Value, g=Morph_Controls$Condition)[[1]])
+Fig1_MorphControls$Condition = factor(Fig1_MorphControls$Condition, levels = c("1000 U/mL LIF", "330 U/mL LIF", "330 U/mL LIF + Pro", "0 U/mL LIF"))
+ANOVAResTable = as.data.frame(DunnettTest(x=Fig1_MorphControls$Value, g=Fig1_MorphControls$Condition)[[1]])
 row.names(ANOVAResTable) = gsub("-1000 U/mL LIF", "", row.names(ANOVAResTable))
 ANOVAResTable$Sig <- ifelse(ANOVAResTable$pval <0.05,  "*", NA)
 
 
-GoIControls_Summarised = Morph_Controls %>% group_by(Condition) %>% summarise(n = n(), Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
+GoIControls_Summarised = Fig1_MorphControls %>% group_by(Condition) %>% summarise(n = n(), Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
 GoIControls_Summarised$Condition = factor(GoIControls_Summarised$Condition, levels = c("1000 U/mL LIF", "330 U/mL LIF", "330 U/mL LIF + Pro", "0 U/mL LIF"))
 
 MorphwStats = merge(GoIControls_Summarised, ANOVAResTable,  by.x = "Condition", by.y = 0, all=T)
 MorphwStats$ConditionWn = paste(MorphwStats$Condition, "\n n=", MorphwStats$n, sep="")
 MorphwStats$ConditionWn = gsub("mL", "\nmL", gsub("LIF", "LIF\n", MorphwStats$ConditionWn))
-Morph_Controls_merge = merge(MorphwStats, Morph_Controls, by = "Condition")
+Fig1_MorphControls_merge = merge(MorphwStats, Fig1_MorphControls, by = "Condition")
 MorphwStats <- MorphwStats[order(MorphwStats$Condition),] 
 MorphwStats$ConditionWn = factor(MorphwStats$ConditionWn, levels = MorphwStats$ConditionWn)
 
 ControlFig = list()
-ControlFig[[paste("Morphology", "_i_Control", sep="")]] = ggplot(MorphwStats, aes(x=ConditionWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ ggtitle("") + theme_classic() + ylab("Morphology Score") + xlab("")+ geom_point( aes(colour = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*6))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8))   + theme(plot.title = element_text(face = "bold"), axis.text.x = element_text(face = "bold", size =8), axis.text.y = element_text(size =8), axis.title.y = element_text(size=8)) + scale_y_continuous(limits = c(0,2.2), expand = c(0,0))+ geom_point(data=Morph_Controls_merge, aes(x = ConditionWn, y =Value), size=0.5)
+ControlFig[[paste("Morphology", "_i_Control", sep="")]] = ggplot(MorphwStats, aes(x=ConditionWn, y=Mean)) + geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ ggtitle("") + theme_classic() + ylab("Morphology Score") + xlab("")+ geom_point( aes(colour = ColourTwoWay, shape = Sig, y = Mean + sign(Mean) * (se + (se*6))), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8))   + theme(plot.title = element_text(face = "bold"), axis.text.x = element_text(face = "bold", size =8), axis.text.y = element_text(size =8), axis.title.y = element_text(size=8)) + scale_y_continuous(limits = c(0,2.2), expand = c(0,0))+ geom_point(data=Fig1_MorphControls_merge, aes(x = ConditionWn, y =Value), size=0.5)
 
 pdf(paste(FilePath, "Figure1B_MorphControls.pdf", sep=""), height = 2.5, width = 4)
 print(ControlFig)
@@ -111,7 +114,7 @@ PlotTitle = "Cell Number"
 Control_Ylab = "Fold change"
 errormargin = 2.8
 }
-GoIControls = subset(EPLControlData, EPLControlData$Exp %in% GoI)
+GoIControls = subset(Fig1_EmergPropControls, Fig1_EmergPropControls$Exp %in% GoI)
 GetMaxHeight = max(GoIControls$Value)*1.2
 GEXPanel_Controls = list()
 
@@ -122,18 +125,18 @@ CompileData2 = as.data.frame(matrix(ncol =16, nrow=0))
 colnames(CompileData2) = c("Condition", "Day.x", "n", "Mean", "stdev", "se", "diff", "lwr.ci", "upr.ci", "pval", "Sig", "ConditionWn", "Exp", "Day.y", "Value", "Day")
 
 for(Dayz in c(2,4,6)){
-EPLControlData_Subs = subset(GoIControls, GoIControls$Day %in% Dayz)
-Control_GraphInputs = EPLControlData_Subs %>% group_by(Condition, Day) %>% summarise(n = n(), Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n()))
+Fig1_EmergPropControls_Subs = subset(GoIControls, GoIControls$Day %in% Dayz)
+Control_GraphInputs = Fig1_EmergPropControls_Subs %>% group_by(Condition, Day) %>% summarise(n = n(), Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n()))
 
-EPLControlData_Subs$Condition = factor(EPLControlData_Subs$Condition, levels = c("1000 U/mL LIF", "330 U/mL LIF", "330 U/mL LIF + Pro", "0 U/mL LIF"))
-ANOVAResTable = as.data.frame(DunnettTest(x=EPLControlData_Subs$Value, g=EPLControlData_Subs$Condition)[[1]])
+Fig1_EmergPropControls_Subs$Condition = factor(Fig1_EmergPropControls_Subs$Condition, levels = c("1000 U/mL LIF", "330 U/mL LIF", "330 U/mL LIF + Pro", "0 U/mL LIF"))
+ANOVAResTable = as.data.frame(DunnettTest(x=Fig1_EmergPropControls_Subs$Value, g=Fig1_EmergPropControls_Subs$Condition)[[1]])
 row.names(ANOVAResTable) = gsub("-1000 U/mL LIF", "", row.names(ANOVAResTable))
 ANOVAResTable$Sig <- ifelse(ANOVAResTable$pval <0.05,  "*", NA)
 SummedwStats = merge(Control_GraphInputs, ANOVAResTable,  by.x = "Condition", by.y = 0, all=T)
 
 SummedwStats$ConditionWn = paste("D", SummedwStats$Day, "\n n=", SummedwStats$n,  sep="")
 SummedwStats$ConditionWn = gsub("mL", "\nmL", gsub("LIF", "LIF\n", SummedwStats$ConditionWn))
-EPLControlData_Subs_merge = merge(SummedwStats, EPLControlData_Subs, by = "Condition")
+Fig1_EmergPropControls_Subs_merge = merge(SummedwStats, Fig1_EmergPropControls_Subs, by = "Condition")
 
 SummedwStats$Day = paste("Day", SummedwStats$Day)
 SummedwStats$MaxHeight = (SummedwStats$Mean +  SummedwStats$se)
@@ -141,8 +144,8 @@ SummedwStats$Condition = factor(SummedwStats$Condition, levels = c("1000 U/mL LI
 SummedwStats <- SummedwStats[order(SummedwStats$Condition),] 
 CompileData = rbind(CompileData, SummedwStats)
 
-EPLControlData_Subs_merge$Day = paste("Day", EPLControlData_Subs_merge$Day.x)
-CompileData2 = rbind(CompileData2, EPLControlData_Subs_merge)
+Fig1_EmergPropControls_Subs_merge$Day = paste("Day", Fig1_EmergPropControls_Subs_merge$Day.x)
+CompileData2 = rbind(CompileData2, Fig1_EmergPropControls_Subs_merge)
 
 }
 
@@ -177,22 +180,22 @@ colnames(CompileGEX) = c("Day", "Condition","Gene", "n", "Mean", "stdev", "se", 
 ControlFig = list()
 for(GoI in Data_To_Plot){
 if("Lefty2" %in% Data_To_Plot){errormargin = 0.8}else{errormargin =1}
-GoIControls = subset(EPLControlData_PCR, EPLControlData_PCR$Gene %in% GoI)
+GoIControls = subset(Fig1_qPCR, Fig1_qPCR$Gene %in% GoI)
 GetMaxHeight = max(GoIControls$Value)*1.3
 GetMinHeight = min(GoIControls$Value)*1.4
 GEXPanel_Controls = list()
 
 for(Condit in c( "330 U/mL LIF", "330 U/mL LIF + Pro", "0 U/mL LIF")){
-EPLControlData_Subs = subset(GoIControls, GoIControls$Condition %in% Condit)
-ControlPCR_GraphInputs = EPLControlData_Subs %>% group_by(Condition, Day, Gene) %>% summarise(n = n(), Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
+Fig1_EmergPropControls_Subs = subset(GoIControls, GoIControls$Condition %in% Condit)
+ControlPCR_GraphInputs = Fig1_EmergPropControls_Subs %>% group_by(Condition, Day, Gene) %>% summarise(n = n(), Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
 
-ControlGroup = as.data.frame(matrix(ncol = 0, nrow = max(as.data.frame(table(EPLControlData_Subs$Day))$Freq)))  
+ControlGroup = as.data.frame(matrix(ncol = 0, nrow = max(as.data.frame(table(Fig1_EmergPropControls_Subs$Day))$Freq)))  
 ControlGroup$Condition = Condit
 ControlGroup$Gene = GoI
 ControlGroup$Day = "Day 0"
 ControlGroup$Value = 0
 
-DataForANOVA = rbind(EPLControlData_Subs, ControlGroup)
+DataForANOVA = rbind(Fig1_EmergPropControls_Subs, ControlGroup)
 DataForANOVA$Day = factor(DataForANOVA$Day, levels = c("Day 0", "Day 2", "Day 4", "Day 6"))
 ANOVAResTable = as.data.frame(DunnettTest(x=DataForANOVA$Value, g=DataForANOVA$Day)[[1]])
 row.names(ANOVAResTable) = gsub("-Day 0", "", row.names(ANOVAResTable))
@@ -201,8 +204,8 @@ ControlPCR_GraphInputsWPval$Sig <- ifelse(ControlPCR_GraphInputsWPval$pval <0.05
 ControlPCR_GraphInputsWPval$Day = gsub("Day ", "D", ControlPCR_GraphInputsWPval$Day)
 ControlPCR_GraphInputsWPval$Day = factor(ControlPCR_GraphInputsWPval$Day, levels = c("D2", "D4", "D6"))
 ControlPCR_GraphInputsWPval$DayWn = paste(ControlPCR_GraphInputsWPval$Day, "\n n=", ControlPCR_GraphInputsWPval$n, sep="")
-EPLControlData_Subs$Day = gsub("Day ", "D", EPLControlData_Subs$Day)
-EPLControlData_Subs$Day = factor(EPLControlData_Subs$Day, levels = c("D2", "D4", "D6"))
+Fig1_EmergPropControls_Subs$Day = gsub("Day ", "D", Fig1_EmergPropControls_Subs$Day)
+Fig1_EmergPropControls_Subs$Day = factor(Fig1_EmergPropControls_Subs$Day, levels = c("D2", "D4", "D6"))
 CompileGEX = rbind(CompileGEX, ControlPCR_GraphInputsWPval)
 }}
 
@@ -210,11 +213,11 @@ CompileQPCR_Main = list()
 for(x in c("330 U/mL LIF", "330 U/mL LIF + Pro", "0 U/mL LIF")){
 CompileQPCR = list()
 SubA = subset(CompileGEX, CompileGEX$Condition %in% x)
-SubB = subset(EPLControlData_PCR, EPLControlData_PCR$Condition %in% x & EPLControlData_PCR$Gene %in% Data_To_Plot)
+SubB = subset(Fig1_qPCR, Fig1_qPCR$Condition %in% x & Fig1_qPCR$Gene %in% Data_To_Plot)
 
 for(y in c("Rex1", "Oct4", "Dnmt3b", "Fgf5",  "Lefty2", "Otx2", "Mixl1")){
 SubC = subset(SubA, SubA$Gene %in% y)
-SubD = subset(EPLControlData_PCR, EPLControlData_PCR$Gene %in% y & EPLControlData_PCR$Condition %in% x)
+SubD = subset(Fig1_qPCR, Fig1_qPCR$Gene %in% y & Fig1_qPCR$Condition %in% x)
 SubD$Day = gsub("Day ", "D", SubD$Day)
 SubE = SubC %>% dplyr::select(Day, DayWn)
 SubE = unique(SubE)
@@ -240,16 +243,16 @@ dev.off()
 ########## 2B: TEMPORAL SIGNALLING ##########
 Figure2Plots = list()
 
-ConstSig2 = ConstSig
+Fig2_StdSignalling2 = Fig2_StdSignalling
 
-ConstSig2$Value = log2(ConstSig2$Value) 
-ConstSig2$Time = factor(ConstSig2$Time, levels = c("0 h", "0.16 h", "0.5 h", "1 h", "2 h", "6 h", "12 h", "24 h", "48 h", "96 h", "144 h" ))
-ConstSig2$Protein = factor(ConstSig2$Protein, levels = c("p-Stat3@Y705", "p-Stat3@S727", "p-Fgfr", "p-Erk1/2", "p-Akt", "p-S6k", "p-Rps6",     "p-4epb1"))
+Fig2_StdSignalling2$Value = log2(Fig2_StdSignalling2$Value) 
+Fig2_StdSignalling2$Time = factor(Fig2_StdSignalling2$Time, levels = c("0 h", "0.16 h", "0.5 h", "1 h", "2 h", "6 h", "12 h", "24 h", "48 h", "96 h", "144 h" ))
+Fig2_StdSignalling2$Protein = factor(Fig2_StdSignalling2$Protein, levels = c("p-Stat3@Y705", "p-Stat3@S727", "p-Fgfr", "p-Erk1/2", "p-Akt", "p-S6k", "p-Rps6",     "p-4epb1"))
 
 
 Constituative = list()
 for(Proteinz in rev(c("p-4epb1", "p-Rps6", "p-S6k", "p-Akt", "p-Erk1/2", "p-Fgfr", "p-Stat3@S727", "p-Stat3@Y705"))){
-SubsDataForANOVA = subset(ConstSig2, ConstSig2$Protein %in% Proteinz)
+SubsDataForANOVA = subset(Fig2_StdSignalling2, Fig2_StdSignalling2$Protein %in% Proteinz)
 SubsDataForTable = SubsDataForANOVA %>% group_by(Time, Protein) %>% dplyr::summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
 
 ANOVAResTable = as.data.frame(DunnettTest(x=SubsDataForANOVA$Value, g=SubsDataForANOVA$Time)[[1]])
@@ -275,11 +278,11 @@ dev.off()
 
 
 ########## 2D: 2H INHIB SUPRESSION ##########
-CrossTalkDataNormToES = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/CrossTalkData_NormToES_Long.csv")
+Fig2_CrossTalk = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/CrossTalkData_NormToES_Long.csv")
 Inhib2H = list()
 for(p in c("pERK", "pRPS6")){
 if(p == "pERK"){p2 = "p-Erk1/2"}else{p2 = "p-Rps6"}
-Reduced_phospho_2h0h = subset(CrossTalkDataNormToES, CrossTalkDataNormToES$Protein %in% p & CrossTalkDataNormToES$Time %in% c("2", "0"))
+Reduced_phospho_2h0h = subset(Fig2_CrossTalk, Fig2_CrossTalk$Protein %in% p & Fig2_CrossTalk$Time %in% c("2", "0"))
 Reduced_phospho_2h0h$CondTime = paste(Reduced_phospho_2h0h$Inhib1, Reduced_phospho_2h0h$Time, sep="_")
 Reduced_phospho_2h0h$CondTime = factor(Reduced_phospho_2h0h$CondTime, levels = c("NA_0", "NA_2", "U_2","S_2", "L_2", "R_2", "P_2"))
 Reduced_phospho_2h0h$Value = log2(Reduced_phospho_2h0h$Value) ##### ADD LOG
@@ -316,20 +319,20 @@ dev.off()
 
 ########## 2E: CROSS TALK ##########
 
-CrossTalkDataNormToES = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/CrossTalkData_NormToES_Long.csv")
+Fig2_CrossTalk = read.csv("~/Dropbox/PhD/MAR20 WIP - Stat Modelling/2021 Analysis/CrossTalkData_NormToES_Long.csv")
 
-CrossTalkDataNormToES$Combo = paste(CrossTalkDataNormToES$Inhib1, CrossTalkDataNormToES$Inhib_Dash, sep=" ")
-CrossTalkDataNormToES$Combo = gsub("NA", "-", CrossTalkDataNormToES$Combo)
-CrossTalkDataNormToES$Combo = factor(CrossTalkDataNormToES$Combo, levels = c("- -", "U -", "U U", "S -", "S S", "L -", "L L", "R -", "R R", "P -", "P P", "U S", "U L", "U R", "U P", "R U", "R S", "R L", "R P"))
-CrossTalkDataNormToES$Value = log2(CrossTalkDataNormToES$Value+0.01)
-SubsDataForTable = CrossTalkDataNormToES %>% group_by(Protein, Time, Combo) %>% dplyr::summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
+Fig2_CrossTalk$Combo = paste(Fig2_CrossTalk$Inhib1, Fig2_CrossTalk$Inhib_Dash, sep=" ")
+Fig2_CrossTalk$Combo = gsub("NA", "-", Fig2_CrossTalk$Combo)
+Fig2_CrossTalk$Combo = factor(Fig2_CrossTalk$Combo, levels = c("- -", "U -", "U U", "S -", "S S", "L -", "L L", "R -", "R R", "P -", "P P", "U S", "U L", "U R", "U P", "R U", "R S", "R L", "R P"))
+Fig2_CrossTalk$Value = log2(Fig2_CrossTalk$Value+0.01)
+SubsDataForTable = Fig2_CrossTalk %>% group_by(Protein, Time, Combo) %>% dplyr::summarise(Mean = mean(Value), stdev = sd(Value), se=sd(Value)/sqrt(n())) 
 SubsDataForTable$Pval_toPro = NA
 
 #CrossTalk_Recompile = as.data.frame(matrix(ncol=11, nrow=0))
 #colnames(CrossTalk_Recompile) = c("Protein", "Inhib1", "Inhib2", "Inhib_Dash", "Time", "Combo", "Mean", "stdev", "se", "Pval_toPro", "Pval_toES")
 
 for(Proteinz in c("pERK", "pRPS6")){
-CrossTalkInput = subset(CrossTalkDataNormToES, CrossTalkDataNormToES$Protein == Proteinz)
+CrossTalkInput = subset(Fig2_CrossTalk, Fig2_CrossTalk$Protein == Proteinz)
 
 for(Timez in c(4,6,8,10)){
 for(Dataz in c("U -", "U U", "S -", "S S", "L -", "L L", "R -", "R R", "P -", "P P", "U S", "U L", "U R", "U P", "R U", "R S", "R L", "R P")){
@@ -346,16 +349,16 @@ SubsDataForTable$Pval_toPro = ifelse(SubsDataForTable$Protein == Proteinz & Subs
 
 SubsDataForTable$Combo = factor(SubsDataForTable$Combo, levels = c("- -", "U -", "U U", "S -", "S S", "L -", "L L", "R -", "R R", "P -", "P P", "U S", "U L", "U R", "U P", "R U", "R S", "R L", "R P"))
 levels(SubsDataForTable$Combo) <- gsub(" ", "\n", levels(SubsDataForTable$Combo))
-levels(CrossTalkDataNormToES$Combo) <- gsub(" ", "\n", levels(CrossTalkDataNormToES$Combo))
-CrossTalkDataNormToES_ForPlot = subset(CrossTalkDataNormToES, ! CrossTalkDataNormToES$Time %in% c(0,2, "0", "2"))
+levels(Fig2_CrossTalk$Combo) <- gsub(" ", "\n", levels(Fig2_CrossTalk$Combo))
+Fig2_CrossTalk_ForPlot = subset(Fig2_CrossTalk, ! Fig2_CrossTalk$Time %in% c(0,2, "0", "2"))
 SubsDataForTable_ForPlot = subset(SubsDataForTable, ! SubsDataForTable$Time %in% c(0,2,"0", "2"))
 
 SubsDataForTable_ForPlot$Sig <- ifelse(SubsDataForTable_ForPlot$Pval_toPro <0.05,  "*", NA)
 
-CrossTalk = ggplot(SubsDataForTable_ForPlot, aes(x=Combo, y=Mean))+ facet_wrap(~Time + Protein, ncol = 2)+geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ xlab("") + ylab(expression(Log[2]~Fold~Change)) +theme_classic() + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean  + sign(Mean) * (stdev + errormargin)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme( axis.text.x = element_text(face = "bold", size = 8), axis.text.y = element_text(size = 8), strip.background = element_blank(), strip.text = element_blank()) +geom_hline(yintercept=0) + scale_y_continuous(limits = c(min(CrossTalkDataNormToES_ForPlot$Value*1.2), max(CrossTalkDataNormToES_ForPlot$Value*1.1)), expand = c(0,0))  + geom_point(data=CrossTalkDataNormToES_ForPlot, aes(x = Combo, y =Value), size=0.3) 
+CrossTalk = ggplot(SubsDataForTable_ForPlot, aes(x=Combo, y=Mean))+ facet_wrap(~Time + Protein, ncol = 2)+geom_col(fill = ColourNeutral, color = "#000000", position = position_dodge(width = 0.9), width = 0.9)+ xlab("") + ylab(expression(Log[2]~Fold~Change)) +theme_classic() + geom_point( aes(color = ColourTwoWay, shape = Sig, y = Mean  + sign(Mean) * (stdev + errormargin)), position = position_dodge(width = 0.9), size = 1, show.legend = F) + geom_errorbar(aes(ymin = Mean-se, ymax = Mean+se), position = position_dodge(width = 0.9), width = 0.2) + scale_shape_manual(values=c(8)) + theme( axis.text.x = element_text(face = "bold", size = 8), axis.text.y = element_text(size = 8), strip.background = element_blank(), strip.text = element_blank()) +geom_hline(yintercept=0) + scale_y_continuous(limits = c(min(Fig2_CrossTalk_ForPlot$Value*1.2), max(Fig2_CrossTalk_ForPlot$Value*1.1)), expand = c(0,0))  + geom_point(data=Fig2_CrossTalk_ForPlot, aes(x = Combo, y =Value), size=0.3) 
 
 
-pdf(paste(FilePath, "Figure2D_Crosstalk.pdf", sep=""), width = 12, height = 6)
+pdf(paste(FilePath, "Figure2E_Crosstalk.pdf", sep=""), width = 12, height = 6)
 print(CrossTalk)
 dev.off()
 ```
@@ -372,7 +375,7 @@ for(GoI_X in Data_To_Plot){
 GoI = gsub("_.*", "", GoI_X)
 
 ########## DATA PREP ##########
-SingleMetric_AllData =  AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", GoI)]
+SingleMetric_AllData =  Fig3_4_ComboInhibData[, c("Name", "Combo", "U", "S", "L", "R", "P", GoI)]
 SingleMetric_AllData$Response = SingleMetric_AllData[[GoI]]
 SingleMetric_AllData[[GoI]] = NULL
 SingleMetric_AllData = na.omit(SingleMetric_AllData)
@@ -484,7 +487,7 @@ write.csv(ModelStats_GoI, paste(FilePath, GoI_X, "_3Models_Stats.csv", sep=""))
 
 
 ########## PANEL II - AVP ##########    
-PullBRANNData = subset(BRANN_AvP, BRANN_AvP$Exp %in% GoI_X)
+PullBRANNData = subset(Fig3_4_BRANNResults, Fig3_4_BRANNResults$Exp %in% GoI_X)
 PullAvP = AllAVP_GoI[, c("Response", "Predicted", "Exp", "ModelType")]
 FourModels = rbind(PullBRANNData, PullAvP)
 
@@ -543,7 +546,7 @@ errormargin = 2.8
 SingleMetric_AllData = as.data.frame(matrix(ncol=9, nrow=0))
 colnames(SingleMetric_AllData) = c("Name", "Combo", "U", "S", "L", "R", "P", "Day", GoI)
 for(x in c(2,4,6)){
-SingleMetric_SingleDay = AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", paste(GoI, x, sep="_"))]
+SingleMetric_SingleDay = Fig3_4_ComboInhibData[, c("Name", "Combo", "U", "S", "L", "R", "P", paste(GoI, x, sep="_"))]
 SingleMetric_SingleDay$Day = x
 colnames(SingleMetric_SingleDay) = gsub("_.*", "", colnames(SingleMetric_SingleDay))
 SingleMetric_AllData = rbind(SingleMetric_AllData, SingleMetric_SingleDay)
@@ -676,7 +679,7 @@ write.csv(ModelStats_GoI, paste(FilePath, GoI_X, "_3Models_Stats.csv", sep=""))
 
 
 ########## PANEL II - AVP ##########    #Add BRANN
-PullBRANNData = subset(BRANN_AvP, BRANN_AvP$Exp %in% GoI_X)
+PullBRANNData = subset(Fig3_4_BRANNResults, Fig3_4_BRANNResults$Exp %in% GoI_X)
 PullAvP = AllAVP_GoI[, c("Response", "Predicted", "Exp", "ModelType")]
 FourModels = rbind(PullBRANNData, PullAvP)
 
@@ -719,14 +722,14 @@ GEXPanel[[paste(GoI_X, "_iii_TwoWayCoefs", sep="")]] = ggplot(GoI_TwoWay_Coefs, 
 
 if( "Prolif_Ntile_8" %in% Data_To_Plot){
 AltModelForSup = ggarrange(plotlist = list(GEXPanel[["Prolif_Ntile_8_ii_Models"]],GEXPanel[["Prolif_Ntile_8_iii_LinearCoefs"]],GEXPanel[["Prolif_Ntile_8_iii_TwoWayCoefs"]]), ncol = 3, nrow=NRows, widths = rep(c(0.85, 0.85, 1.7), NRows))
-pdf(paste(FilePath, "Figure_S8_Prolif.pdf", sep=""), width = 15, height = NRows*4)
+pdf(paste(FilePath, "FigureS8_Prolif.pdf", sep=""), width = 15, height = NRows*4)
 print(AltModelForSup)
 dev.off()
 GEXPanel[["Prolif_Ntile_8_ii_Models"]]=NULL; GEXPanel[["Prolif_Ntile_8_iii_LinearCoefs"]]=NULL; GEXPanel[["Prolif_Ntile_8_iii_TwoWayCoefs"]]=NULL
 }
 
 Figure3 = ggarrange(plotlist = GEXPanel, ncol = 3, nrow=4, widths = rep(c(0.85, 0.85, 1.7), 4), align = "hv")
-pdf(paste(FilePath, "Figure3BCDE_Models.pdf", sep=""), width = 12, height = 4*2.5)
+pdf(paste(FilePath, "Figure3BCDE_EmergPropModels.pdf", sep=""), width = 12, height = 4*2.5)
 print(Figure3)
 dev.off()
 ```
@@ -740,7 +743,7 @@ NRows = length(Data_To_Plot)
 for(GoI in Data_To_Plot){
 
 ########## DATA PREP ##########
-SingleMetric_AllData =  AllVariables[, c("Name", "Combo", "U", "S", "L", "R", "P", GoI)]
+SingleMetric_AllData =  Fig3_4_ComboInhibData[, c("Name", "Combo", "U", "S", "L", "R", "P", GoI)]
 SingleMetric_AllData$Response = SingleMetric_AllData[[GoI]]
 SingleMetric_AllData[[GoI]] = NULL
 SingleMetric_AllData = na.omit(SingleMetric_AllData)
@@ -818,7 +821,7 @@ write.csv(ModelStats_GoI, paste(FilePath, GoI, "_3Models_Stats.csv", sep=""))
 
 
 ########## PANEL II - AVP ##########    
-PullBRANNData = subset(BRANN_AvP, BRANN_AvP$Exp %in% GoI)
+PullBRANNData = subset(Fig3_4_BRANNResults, Fig3_4_BRANNResults$Exp %in% GoI)
 PullAvP = AllAVP_GoI[, c("Response", "Predicted", "Exp", "ModelType")]
 FourModels = rbind(PullBRANNData, PullAvP)
 
@@ -846,8 +849,13 @@ GEXPanel_AltMain[[paste(x, "_iii_TwoWayCoefs", sep="")]] = NULL
 Figure4Main = ggarrange(plotlist = GEXPanel_AltMain, ncol = 4, nrow=4, align = "hv")
 Figure4Supp = ggarrange(plotlist = GEXPanel_AltSupp, ncol = 2, nrow=4,  align = "hv")
 
-pdf(paste(FilePath, "Figure4andS10.pdf", sep= ""), width = 12, height = 4*2.5)
-print(list(Figure4Main, Figure4Supp))
+pdf(paste(FilePath, "Figure4_GEModels.pdf", sep= ""), width = 12, height = 4*2.5)
+print(Figure4Main)
+dev.off()
+
+
+pdf(paste(FilePath, "FigureS10_GeneExp_TwoWay.pdf", sep= ""), width = 12, height = 4*2.5)
+print(Figure4Supp)
 dev.off()
 ```
 
@@ -864,7 +872,7 @@ TitleStyle = "bold"}else{
 Ytitle =expression(Log[2]~Fold~Change)
 TitleStyle = "bold.italic"}  
   
-SelectData = AllVariables[, c("Combo", e)]   
+SelectData = Fig3_4_ComboInhibData[, c("Combo", e)]   
 colnames(SelectData) = c("Combo", "Value")
 SelectData = na.omit(SelectData)
 
@@ -916,13 +924,13 @@ dev.off()
 ### FIGURE S3-5: Raw data bar plots - CELL NUMBER, APOPTOSIS AND PROLIFERATION
 ```{r}
 ######################################
-AllVariableswZeros = AllVariables
+Fig3_4_ComboInhibDatawZeros = Fig3_4_ComboInhibData
 
-ExclLR_All = subset(AllVariableswZeros,  AllVariableswZeros$Combo %notin% c("L+R", "U+L+R", "S+L+R", "L+R+P", "U+S+L+R",  "U+L+R+P", "S+L+R+P",  "U+S+L+R+P"))  
-OnlyLR_All = subset(AllVariableswZeros,  AllVariableswZeros$Combo %in% c("L+R", "U+L+R", "S+L+R", "L+R+P", "U+S+L+R",  "U+L+R+P", "S+L+R+P",  "U+S+L+R+P"))  
+ExclLR_All = subset(Fig3_4_ComboInhibDatawZeros,  Fig3_4_ComboInhibDatawZeros$Combo %notin% c("L+R", "U+L+R", "S+L+R", "L+R+P", "U+S+L+R",  "U+L+R+P", "S+L+R+P",  "U+S+L+R+P"))  
+OnlyLR_All = subset(Fig3_4_ComboInhibDatawZeros,  Fig3_4_ComboInhibDatawZeros$Combo %in% c("L+R", "U+L+R", "S+L+R", "L+R+P", "U+S+L+R",  "U+L+R+P", "S+L+R+P",  "U+S+L+R+P"))  
 OnlyLR_All[c("CellNoNorm_2", "CellNoNorm_4", "CellNoNorm_6")][is.na(OnlyLR_All[c("CellNoNorm_2", "CellNoNorm_4", "CellNoNorm_6")])] <- 0
 
-AllVariableswZeros = rbind(OnlyLR_All, ExclLR_All)
+Fig3_4_ComboInhibDatawZeros = rbind(OnlyLR_All, ExclLR_All)
 
 #
 #
@@ -956,7 +964,7 @@ DayFactor = " - Day 6"
 }
   
 
-SelectData = AllVariableswZeros[, c("Combo", e)]   
+SelectData = Fig3_4_ComboInhibDatawZeros[, c("Combo", e)]   
 colnames(SelectData) = c("Combo", "Value")
 SelectData = na.omit(SelectData)
 
@@ -1005,14 +1013,14 @@ SuppControlEmergFigs[[e]] = ggplot(SelectData_Condensed, aes(x=ComboWn, y=Mean,f
 }
 
 SuppEmerg = ggarrange(plotlist = SuppControlEmergFigs, ncol = 1, nrow=3)
-pdf(paste(FilePath, "FigureS2S4S5_EmergentPropertiesRaw.pdf", sep=""), width = 12, height = 3*2.8)
+pdf(paste(FilePath, "FigureS3S4S5_EmergentPropertiesRaw.pdf", sep=""), width = 12, height = 3*2.8)
 print(SuppEmerg)
 dev.off()
 ```
 
 ### FIGURE S6: Correlation Plot
 ```{r}
-SumForCorPlot = AllVariables %>% dplyr::select(FunctionalAssay, CellNoNorm_2, CellNoNorm_4, CellNoNorm_6, Prolif_2, Prolif_4, Prolif_6, Apoptosis_2,  Apoptosis_4, Apoptosis_6, Morphology, Rex1, Oct4, Dnmt3b, Fgf5, Mixl1, Lefty2, Otx2)
+SumForCorPlot = Fig3_4_ComboInhibData %>% dplyr::select(FunctionalAssay, CellNoNorm_2, CellNoNorm_4, CellNoNorm_6, Prolif_2, Prolif_4, Prolif_6, Apoptosis_2,  Apoptosis_4, Apoptosis_6, Morphology, Rex1, Oct4, Dnmt3b, Fgf5, Mixl1, Lefty2, Otx2)
 colnames(SumForCorPlot) = gsub("_", " - Day ", gsub("CellNoNorm", "Cell number", gsub("Prolif", "Proliferation", colnames(SumForCorPlot))))
 
 
@@ -1025,8 +1033,8 @@ dev.off()
 
 
 ###
-SumForCorPlot = AllVariables %>% select(FunctionalAssay, Rex1, Oct4, Dnmt3b, Fgf5, Mixl1, Lefty2, Otx2)
-colnames(SumForCorPlot) = gsub("_", " - Day ", gsub("FunctionalAssay", "Functional assay", gsub("Prolif", "Proliferation", colnames(SumForCorPlot))))
+SumForCorPlot = Fig3_4_ComboInhibData %>% select(FunctionalAssay, Rex1, Oct4, Dnmt3b, Fgf5, Mixl1, Lefty2, Otx2)
+colnames(SumForCorPlot) = gsub("_", " - Day ", gsub("FigS11_FunctionalAssay", "Functional assay", gsub("Prolif", "Proliferation", colnames(SumForCorPlot))))
 
 CORR = mycor(SumForCorPlot)
 
@@ -1041,30 +1049,30 @@ dev.off()
 
 ##FIGURE S7: PCA
 ```{r}
-AllVariables2 = AllVariables
+Fig3_4_ComboInhibData2 = Fig3_4_ComboInhibData
 
-AllVariables2$U = NULL; AllVariables2$S = NULL; AllVariables2$L = NULL; AllVariables2$R = NULL; AllVariables2$P = NULL; AllVariables2$FunctionalAssay = NULL; AllVariables2$Name = NULL;  AllVariables2$CellNoRaw_2 = NULL;  AllVariables2$CellNoRaw_4 = NULL;  AllVariables2$CellNoRaw_6 = NULL
-AllVariables3 = AllVariables2 %>% group_by(Combo) %>% summarise_all(mean, na.rm=T)
-AllVariables3 = na.omit(AllVariables3)
-RowNames = AllVariables3$Combo
+Fig3_4_ComboInhibData2$U = NULL; Fig3_4_ComboInhibData2$S = NULL; Fig3_4_ComboInhibData2$L = NULL; Fig3_4_ComboInhibData2$R = NULL; Fig3_4_ComboInhibData2$P = NULL; Fig3_4_ComboInhibData2$FigS11_FunctionalAssay = NULL; Fig3_4_ComboInhibData2$Name = NULL;  Fig3_4_ComboInhibData2$CellNoRaw_2 = NULL;  Fig3_4_ComboInhibData2$CellNoRaw_4 = NULL;  Fig3_4_ComboInhibData2$CellNoRaw_6 = NULL
+Fig3_4_ComboInhibData3 = Fig3_4_ComboInhibData2 %>% group_by(Combo) %>% summarise_all(mean, na.rm=T)
+Fig3_4_ComboInhibData3 = na.omit(Fig3_4_ComboInhibData3)
+RowNames = Fig3_4_ComboInhibData3$Combo
 
-AllVariables3$Combo = NULL
+Fig3_4_ComboInhibData3$Combo = NULL
 
-AllVariables_Zscore = as.data.frame(scale(AllVariables3))
-row.names(AllVariables_Zscore) = RowNames
+Fig3_4_ComboInhibData_Zscore = as.data.frame(scale(Fig3_4_ComboInhibData3))
+row.names(Fig3_4_ComboInhibData_Zscore) = RowNames
 
 #########
 set.seed(123)
 OutputPCA = list()
-OutputPCA[["silhouette"]] = fviz_nbclust(AllVariables_Zscore, kmeans, method = "silhouette", linecolor = ColourFiveWay, k.max = 6) +labs(title = element_blank()) + theme(axis.title = element_text(face = "bold", size = 8), axis.text = element_text(face = "bold", size = 8))
-k2 <- kmeans(AllVariables_Zscore, centers = 2, nstart = 25)
+OutputPCA[["silhouette"]] = fviz_nbclust(Fig3_4_ComboInhibData_Zscore, kmeans, method = "silhouette", linecolor = ColourFiveWay, k.max = 6) +labs(title = element_blank()) + theme(axis.title = element_text(face = "bold", size = 8), axis.text = element_text(face = "bold", size = 8))
+k2 <- kmeans(Fig3_4_ComboInhibData_Zscore, centers = 2, nstart = 25)
 
-OutputPCA[["Main"]] = fviz_cluster(k2, data = AllVariables_Zscore, labelsize = 6, show.clust.cent	= F) + scale_color_manual(values = c("1" = ColourLinear, "2" = ColourTwoWay)) + scale_fill_manual(values = c("1" = ColourLinear, "2" = ColourTwoWay)) +theme(legend.position = "none", plot.title = element_blank(), axis.text = element_text(face = "bold", size = 8), axis.title = element_text(face = "bold", size = 8)) #, ggtheme = theme_bw()
+OutputPCA[["Main"]] = fviz_cluster(k2, data = Fig3_4_ComboInhibData_Zscore, labelsize = 6, show.clust.cent	= F) + scale_color_manual(values = c("1" = ColourLinear, "2" = ColourTwoWay)) + scale_fill_manual(values = c("1" = ColourLinear, "2" = ColourTwoWay)) +theme(legend.position = "none", plot.title = element_blank(), axis.text = element_text(face = "bold", size = 8), axis.title = element_text(face = "bold", size = 8)) #, ggtheme = theme_bw()
 
 kmean_cluster = as.data.frame(k2$cluster)
-AllVariables3 = as.data.frame(AllVariables3)
-row.names(AllVariables3) = RowNames
-AllVariables4 = merge(AllVariables3, kmean_cluster, by = 0)
+Fig3_4_ComboInhibData3 = as.data.frame(Fig3_4_ComboInhibData3)
+row.names(Fig3_4_ComboInhibData3) = RowNames
+Fig3_4_ComboInhibData4 = merge(Fig3_4_ComboInhibData3, kmean_cluster, by = 0)
 
 kmean_cluster2 = subset(kmean_cluster, ! row.names(kmean_cluster) == "DMSO")
 kmean_cluster2$U = ifelse(grepl("U", row.names(kmean_cluster2), fixed = T), 1, 0)
@@ -1116,7 +1124,7 @@ if(dt == "Morphology"){ylabtitle = "Morphology Score"}else if(dt %in% c("CellNoN
 if(dt %in% c("CellNoNorm_2", "CellNoNorm_4", "CellNoNorm_6")){ptitle = gsub("CellNoNorm_", "Cell Number - Day ", dt)}else if(dt %in% c("Prolif_2", "Prolif_4", "Prolif_6")){ptitle = gsub("Prolif_", "Proliferation - Day ", dt)}else if(dt %in% c("Apoptosis_2", "Apoptosis_4", "Apoptosis_6")){ptitle =  gsub("Apoptosis_", "Apoptosis - Day ", dt)}else if(dt %in% c("EB2", "EB3", "EB4")){ptitle =  gsub("EB", "Brachyury - EB", dt)}else{ptitle = dt}
 
   
-PullData = AllVariables4[,c(dt,"k2$cluster")]
+PullData = Fig3_4_ComboInhibData4[,c(dt,"k2$cluster")]
 colnames(PullData) = c("Value", "KClust")
 #PullData$KClust = factor(PullData$KClust, levels = c(1,2))  
 Clust1 = subset(PullData, PullData$KClust == 1)
@@ -1143,7 +1151,7 @@ OUTPUT = ggarrange(plotlist = OutputComps, ncol = 5, nrow= 4, align="hv")
 OUTPUT2= ggarrange(PCA_Main, OUTPUT, ncol = 1, nrow= 2, heights = c(0.5, 1), align="hv") 
 
 
-pdf(paste(FilePath, "FigureSX_PCA.pdf", sep=""), width = 10, height = 12)
+pdf(paste(FilePath, "FigureS7_PCA.pdf", sep=""), width = 10, height = 12)
 print(OUTPUT2)
 dev.off()
 
@@ -1157,11 +1165,11 @@ Condit = c("1000 U/mL LIF", "330 LIF+Pro+DMSO", "U", "S", "L", "R", "P", "U+S", 
 FirstUpreg = as.data.frame(matrix(ncol = 2, nrow = 0))
 colnames(FirstUpreg) = c("Condition", "UpregDay")
 
-MaxVal = max(FunctionalAssay$Value) *1.1
-MinVal = min(FunctionalAssay$Value)*1.1
-FunctionalAssay$Exp = NULL
+MaxVal = max(FigS11_FunctionalAssay$Value) *1.1
+MinVal = min(FigS11_FunctionalAssay$Value)*1.1
+FigS11_FunctionalAssay$Exp = NULL
 for(x in Condit){
-FA_ForSTATS = subset(FunctionalAssay, FunctionalAssay$Condition == x)
+FA_ForSTATS = subset(FigS11_FunctionalAssay, FigS11_FunctionalAssay$Condition == x)
 
 ControlGroup = as.data.frame(matrix(ncol = 0, nrow = max(as.data.frame(table(FA_ForSTATS$Day))$Freq)))  
 ControlGroup$Condition = "Baseline"
@@ -1204,11 +1212,6 @@ FA_list[[x]] = ggplot(CompileForPlotWStats, aes(x=DayWn, y=Mean))  + geom_col(fi
 }      
 
 FunctAssayFig = ggarrange(plotlist = FA_list, ncol =5, nrow=5)
-
-pdf(paste(FilePath, "FigureS7_FunctionalAssay.pdf", sep=""), width = 8, height =  9)
-print(FunctAssayFig)
-dev.off()
-
 
 
 ####
@@ -1265,8 +1268,8 @@ dev.off()
 SW_Res = as.data.frame(matrix(ncol=3, nrow=0))
 colnames(SW_Res) = c("Exp", "SWpval", "Rsq")
 
-for(x in unique(BRANN_AvP$Exp)){
-Subs = subset(BRANN_AvP, BRANN_AvP$Exp == x)  
+for(x in unique(Fig3_4_BRANNResults$Exp)){
+Subs = subset(Fig3_4_BRANNResults, Fig3_4_BRANNResults$Exp == x)  
 BRANN_SW = as.data.frame(x)
 colnames(BRANN_SW) = "Exp"
 BRANN_SW$SWpval =  shapiro.test(Subs$Predicted)[[2]]
